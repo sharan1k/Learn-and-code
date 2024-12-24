@@ -4,28 +4,44 @@
 #include <sstream>
 
 class Customer {
-public:
+private:
     int customerID;
     std::string companyName;
     std::string contactName;
     std::string country;
- 
+
+public:
     Customer(int customerID, std::string companyName, std::string contactName, std::string country)
         : customerID(customerID), companyName(companyName), contactName(contactName), country(country) {}
+
+    int getCustomerID() const {
+        return customerID;
+    }
+
+    std::string getCompanyName() const {
+        return companyName;
+    }
+
+    std::string getContactName() const {
+        return contactName;
+    }
+
+    std::string getCountry() const {
+        return country;
+    }
 };
- 
-class CustomerSearch {
+
+class CustomerRepository {
 private:
     std::vector<Customer> customers;
- 
+    std::vector<Customer> searchResult;
+    
 public:
-    CustomerSearch(const std::vector<Customer>& customerList) : customers(customerList) {}
+    CustomerRepository(const std::vector<Customer>& customerList) : customers(customerList) {}
  
     std::vector<Customer> searchByCountry(const std::string& country) {
-        std::vector<Customer> searchResult;
-
         for (const auto& customer : customers) {
-            if (customer.country.find(country) != std::string::npos) {
+            if (customer.getCountry().find(country) != std::string::npos) {
                 searchResult.push_back(customer);
             }
         }
@@ -34,24 +50,22 @@ public:
     }
  
     std::vector<Customer> searchByCompanyName(const std::string& company) {
-        std::vector<Customer> searchResult;
-
         for (const auto& customer : customers) {
-            if (customer.companyName.find(company) != std::string::npos) {
+            if (customer.getCompanyName().find(company) != std::string::npos) {
                 searchResult.push_back(customer);
             }
         }
+        
         return searchResult;
     }
 
     std::vector<Customer> searchByContact(const std::string& contact) {
-        std::vector<Customer> searchResult;
-
         for (const auto& customer : customers) {
-            if (customer.contactName.find(contact) != std::string::npos) {
+            if (customer.getContactName().find(contact) != std::string::npos) {
                 searchResult.push_back(customer);
             }
         }
+        
         return searchResult;
     }
 };
@@ -60,7 +74,7 @@ std::string exportToCSV(const std::vector<Customer>& customerData) {
     std::stringstream csvData;
  
     for (const auto& customer : customerData) {
-        csvData << customer.customerID << "," << customer.companyName << "," << customer.contactName << "," << customer.country << std::endl;
+        csvData << customer.getCustomerID() << "," << customer.getCompanyName() << "," << customer.getContactName() << "," << customer.getCountry() << std::endl;
     }
  
     return csvData.str();
@@ -74,12 +88,12 @@ int main() {
         Customer(4, "Samsung", "Karthik", "India")
     };
  
-    CustomerSearch customerSearch(customerList);
-    std::vector<Customer> indiaCustomers = customerSearch.searchByCountry("India");
+    CustomerRepository customerRepository(customerList);
+    std::vector<Customer> indiaCustomers = customerRepository.searchByCountry("India");
     std::cout << "Customers in India:" << std::endl;
 
     for (const auto& customer : indiaCustomers) {
-        std::cout << customer.customerID << " - " << customer.companyName << std::endl;
+        std::cout << customer.getCustomerID() << " - " << customer.getCompanyName() << std::endl;
     }
 
     std::string csvOutput = exportToCSV(indiaCustomers);

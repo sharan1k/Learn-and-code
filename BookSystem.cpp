@@ -1,8 +1,20 @@
+/*
+The current Book class violates the Single Responsibility Principle (SRP) by handling multiple concerns:
+1. It manages book-related operations like title, author, and page index.
+2. It handles physical location (getLocation), which is unrelated to the book's core behavior.
+3. The save method manages file saving, a separate responsibility from the book's core functions.
+Each of these concerns could change independently, which violates SRP.
+*/
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+
+struct Location {
+    int shelfNumber;
+    int roomNumber;
+};
 
 class Book {
 private:
@@ -49,18 +61,18 @@ public:
 
 class LibraryCatalog  {
 private:
-    std::unordered_map<std::string, std::pair<int, int>> bookLocationMap;
+    std::unordered_map<std::string, Location> bookLocationMap;
 
 public:
-    void registerBookLocation(const std::string& bookName, int shelfNumber, int roomNumber) {
-        bookLocationMap [bookName] = {shelfNumber, roomNumber};
+    void registerBookLocation(const std::string& bookName, const Location& location) {
+        bookLocationMap[bookName] = location;
     }
 
     std::string findBookLocation(const std::string& bookName) const {
         auto bookIterator = bookLocationMap.find(bookName);
         if (bookIterator != bookLocationMap.end()) {
-            return "Book: " + bookName + " is located at Shelf: " + std::to_string(bookIterator->second.first) +
-                   ", Room: " + std::to_string(bookIterator->second.second);
+            return "Book: " + bookName + " is located at Shelf: " + std::to_string(bookIterator->second.shelfNumber) +
+                   ", Room: " + std::to_string(bookIterator->second.roomNumber);
         } else {
             return "Book: " + bookName + " is not found in the library.";
         }
@@ -83,7 +95,7 @@ int main() {
     Book book("The Magic Of Thinking Big", "David");
     PlainTextPrinter textPrinter;
     LibraryCatalog library;
-    library.registerBookLocation("The Magic Of Thinking Big",5,1);
+    library.registerBookLocation("The Magic Of Thinking Big", {5, 1});
     book.turnPage();
     book.turnPage();
     textPrinter.printPage(book.getCurrentPage());

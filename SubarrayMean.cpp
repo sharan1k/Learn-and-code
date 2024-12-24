@@ -1,6 +1,11 @@
 #include <iostream>
 #include <vector>
 
+struct Query {
+    int leftIndex;
+    int rightIndex;
+};
+
 std::vector<int> computePrefixSums(const std::vector<int>& elementsArray) {
     int numberOfElements = elementsArray.size();
     std::vector<int> prefixSum(numberOfElements + 1, 0);
@@ -12,19 +17,17 @@ std::vector<int> computePrefixSums(const std::vector<int>& elementsArray) {
     return prefixSum;
 }
 
-int calculateSubarrayMean(int leftIndex, int rightIndex, const std::vector<int>& prefixSum) {
-    int subarraySum = prefixSum[rightIndex] - prefixSum[leftIndex - 1];
-    int elementsInSubarray = rightIndex - leftIndex + 1;
+int calculateSubarrayMean(const Query& query, const std::vector<int>& prefixSum) {
+    int subarraySum = prefixSum[query.rightIndex] - prefixSum[query.leftIndex - 1];
+    int elementsInSubarray = query.rightIndex - query.leftIndex + 1;
     return subarraySum / elementsInSubarray; 
 }
 
-void processQueries(int numberOfQueries, const std::vector<std::pair<int, int>>& queries, const std::vector<int>& prefixSum) {
+void processQueries(const std::vector<Query>& queries, const std::vector<int>& prefixSum) {
     std::cout << "Output" << std::endl;
 
-    for (int index = 0; index < numberOfQueries; index++) {
-        int leftIndex = queries[index].first;
-        int rightIndex = queries[index].second;
-        std::cout << calculateSubarrayMean(leftIndex, rightIndex, prefixSum) << std::endl;
+    for (const auto& query : queries) {
+        std::cout << calculateSubarrayMean(query, prefixSum) << std::endl;
     }
 }
 
@@ -33,17 +36,17 @@ int main() {
     std::cout << "Input" << std::endl;
     std::cin >> numberOfElements >> numberOfQueries;
     std::vector<int> elementsArray(numberOfElements);
-    std::vector<std::pair<int, int>> queries(numberOfQueries);
+    std::vector<Query> queries(numberOfQueries);
 
     for (int index = 0; index < numberOfElements; index++) {
         std::cin >> elementsArray[index];
     }
 
     for (int index = 0; index < numberOfQueries; index++) {
-        std::cin >> queries[index].first >> queries[index].second;
+        std::cin >> queries[index].leftIndex >> queries[index].rightIndex;
     }
 
     std::vector<int> prefixSum = computePrefixSums(elementsArray);
-    processQueries(numberOfQueries, queries, prefixSum);
+    processQueries(queries, prefixSum);
     return 0;
 }

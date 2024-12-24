@@ -4,8 +4,8 @@
 #include <string>   
 
 bool isValidGuess(const std::string &input) {
-    for (char ch : input) {
-        if (!isdigit(ch)) {
+    for (char character : input) {
+        if (!isdigit(character)) {
             return false;
         }
     }
