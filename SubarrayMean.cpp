@@ -20,6 +20,7 @@ std::vector<int> computePrefixSums(const std::vector<int>& elementsArray) {
 int calculateSubarrayMean(const Query& query, const std::vector<int>& prefixSum) {
     int subarraySum = prefixSum[query.rightIndex] - prefixSum[query.leftIndex - 1];
     int elementsInSubarray = query.rightIndex - query.leftIndex + 1;
+
     return subarraySum / elementsInSubarray; 
 }
 
@@ -33,8 +34,10 @@ void processQueries(const std::vector<Query>& queries, const std::vector<int>& p
 
 int main() {
     int numberOfElements, numberOfQueries;
+
     std::cout << "Input" << std::endl;
     std::cin >> numberOfElements >> numberOfQueries;
+
     std::vector<int> elementsArray(numberOfElements);
     std::vector<Query> queries(numberOfQueries);
 
@@ -48,5 +51,6 @@ int main() {
 
     std::vector<int> prefixSum = computePrefixSums(elementsArray);
     processQueries(queries, prefixSum);
+    
     return 0;
 }

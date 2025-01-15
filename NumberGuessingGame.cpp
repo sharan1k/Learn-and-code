@@ -9,12 +9,14 @@ bool isValidGuess(const std::string &input) {
             return false;
         }
     }
+
     int guess = std::stoi(input);
     return (guess >= 1 && guess <= 100);
 }
 
 int getUserGuess() {
     std::string userInput;
+    
     while (true) {
         std::cout << "Guess a number between 1 and 100: ";
         std::getline(std::cin, userInput);

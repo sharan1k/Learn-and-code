@@ -48,6 +48,7 @@ public:
     static void saveToFile(const Book& book) {
         std::string filename = "./" + book.getTitle() + " - " + book.getAuthor() + ".txt";
         std::ofstream file(filename);
+
         if (file.is_open()) {
             file << "Title: " << book.getTitle() << "\n";
             file << "Author: " << book.getAuthor() << "\n";
@@ -70,6 +71,7 @@ public:
 
     std::string findBookLocation(const std::string& bookName) const {
         auto bookIterator = bookLocationMap.find(bookName);
+
         if (bookIterator != bookLocationMap.end()) {
             return "Book: " + bookName + " is located at Shelf: " + std::to_string(bookIterator->second.shelfNumber) +
                    ", Room: " + std::to_string(bookIterator->second.roomNumber);
@@ -93,13 +95,20 @@ public:
  
 int main() {
     Book book("The Magic Of Thinking Big", "David");
+
     PlainTextPrinter textPrinter;
+
     LibraryCatalog library;
     library.registerBookLocation("The Magic Of Thinking Big", {5, 1});
+
     book.turnPage();
     book.turnPage();
+
     textPrinter.printPage(book.getCurrentPage());
+
     BookStorage::saveToFile(book);
+
     std::cout << library.findBookLocation("The Magic Of Thinking Big") << std::endl;
+    
     return 0;
 }

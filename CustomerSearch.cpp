@@ -89,15 +89,16 @@ int main() {
     };
  
     CustomerRepository customerRepository(customerList);
-    std::vector<Customer> indiaCustomers = customerRepository.searchByCountry("India");
-    std::cout << "Customers in India:" << std::endl;
 
+    std::vector<Customer> indiaCustomers = customerRepository.searchByCountry("India");
+
+    std::cout << "Customers in India:" << std::endl;
     for (const auto& customer : indiaCustomers) {
         std::cout << customer.getCustomerID() << " - " << customer.getCompanyName() << std::endl;
     }
 
     std::string csvOutput = exportToCSV(indiaCustomers);
-    std::cout << "CSV Export (India Customers):" << std::endl;
-    std::cout << csvOutput;
+    std::cout << "CSV Export (India Customers):\n" << csvOutput;
+    
     return 0;
 }

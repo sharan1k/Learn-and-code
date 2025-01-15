@@ -72,6 +72,7 @@ public:
  
 int main() {
     Employee employee(1, "John Doe", "HR", true);
+
     DatabaseOperations databaseOperations;
     EmployeeReportGenerator reportGenerator;
     EmployeeManagement employeeManagement;
@@ -80,5 +81,6 @@ int main() {
     reportGenerator.printEmployeeDetailsAsXML(employee);
     reportGenerator.printEmployeeDetailsAsCSV(employee);
     employeeManagement.terminateEmployee(employee);
+    
     return 0;
 }
