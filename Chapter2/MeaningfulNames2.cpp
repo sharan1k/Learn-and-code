@@ -10,7 +10,8 @@ struct Subject {
     string name; 
     int score; 
 
-    Subject(string subjectName, int subjectScore) : name(subjectName), score(subjectScore) {} 
+    Subject(string subjectName, int subjectScore) 
+        : name(subjectName), score(subjectScore) {} 
 };  
 
 struct Student  { 
@@ -18,11 +19,13 @@ struct Student  {
     int rollNumber; 
     vector<Subject> subjects; 
 
-    Student(string studentName, int studentRollNumber, vector<Subject> subjectList) : name(studentName), rollNumber(studentRollNumber), subjects(subjectList) {} 
+    Student(string studentName, int studentRollNumber, vector<Subject> subjectList) 
+        : name(studentName), rollNumber(studentRollNumber), subjects(subjectList) {} 
 }; 
 
 void displayStudentDetails(int rollNumber, const vector<Student>& studentList) { 
     const Student* foundStudent = nullptr; 
+
     for (const auto& student : studentList) { 
         if (student.rollNumber == rollNumber) { 
             foundStudent = &student; 
@@ -35,7 +38,15 @@ void displayStudentDetails(int rollNumber, const vector<Student>& studentList) {
         return; 
     } 
 
-    int totalScore = accumulate(foundStudent->subjects.begin(), foundStudent->subjects.end(), 0, [](int total, const Subject& subject) { return total + subject.score; }); 
+    int totalScore = accumulate(
+        foundStudent->subjects.begin(),
+        foundStudent->subjects.end(), 
+        0, 
+        [](int total, const Subject& subject) { 
+            return total + subject.score; 
+            }
+        ); 
+        
     double percentage = (static_cast<double>(totalScore) / (foundStudent->subjects.size() * 100)) * 100; 
 
     cout << "Name: " << foundStudent->name << endl; 

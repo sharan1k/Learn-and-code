@@ -11,12 +11,18 @@ void toUpperCase(std::string& sentence) {
 
 std::string getCountryName(const std::string& countryCode) {
     auto countryCodeIterator = countryCodes.find(countryCode);
-    return (countryCodeIterator != countryCodes.end()) ? countryCodeIterator->second : "Country code not found.";
+    
+    return (countryCodeIterator != countryCodes.end()) 
+            ? countryCodeIterator->second 
+            : "Country code not found.";
 }
 
 std::vector<std::string> getAdjacentCountries(const std::string& countryCode) {
     auto countryNeighboursIterator = countryNeighbours.find(countryCode);
-    return (countryNeighboursIterator != countryNeighbours.end()) ? countryNeighboursIterator->second : std::vector<std::string>{};
+
+    return (countryNeighboursIterator != countryNeighbours.end()) 
+            ? countryNeighboursIterator->second 
+            : std::vector<std::string>{};
 }
 
 
@@ -42,8 +48,9 @@ int main() {
             continue;
         }
 
-        std::vector<std::string> neighbors = getAdjacentCountries(countryCode);
         std::cout << "Country Name: " << countryName << std::endl;
+
+        std::vector<std::string> neighbors = getAdjacentCountries(countryCode);
 
         if (neighbors.empty()) {
             std::cout << "This country has no adjacent countries." << std::endl;
