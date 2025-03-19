@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sqlite3.h>
 #include <json.hpp>
+#include <fstream>
 
 class Item {
 public:
@@ -82,7 +83,7 @@ public:
         order_json["discount"] = discount;
         order_json["subtotal"] = getSubtotal();
         order_json["gst"] = calculateGST();
-        order_json["total"] = getTotal();
+        order_json["total"] = getTotalAmount();
         return order_json;
     }
 };
@@ -172,19 +173,37 @@ public:
 
         sqlite3_finalize(stmt);
     }
+
+    void parseJsonFile(const std::string& filename) {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "Could not open the file!" << std::endl;
+            return;
+        }
+
+        nlohmann::json json_data;
+        file >> json_data;
+
+        for (const auto& item_json : json_data["items"]) {
+            std::string name = item_json["name"];
+            double price = item_json["price"];
+            int quantity = item_json["quantity"];
+            addItemToOrder(Item(name, price, quantity));
+        }
+
+        setShippingCost(json_data["shippingCost"]);
+        setDiscount(json_data["discount"]);
+    }
 };
 
 int main() {
+    std::string json_file;
+    std::cout << "Enter the JSON file name: ";
+    std::cin >> json_file;
+    
     Checkout checkout;
-
-    checkout.addItemToOrder(Item("Telivision", 25000, 2));
-    checkout.addItemToOrder(Item("Remote", 200, 2));
-
-    checkout.setShippingCost(200);
-    checkout.setDiscount(1000);     
-
+    checkout.parseJsonFile(json_file);
     checkout.processOrder();
-
     checkout.saveOrderToDatabase();
 
     return 0;
