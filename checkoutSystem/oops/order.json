@@ -1,0 +1,16 @@
+{
+    "items": [
+        {
+            "name": "Telivision",
+            "price": 25000,
+            "quantity": 2
+        },
+        {
+            "name": "Remote",
+            "price": 200,
+            "quantity": 2
+        }
+    ],
+    "shippingCost": 200,
+    "discount": 1000
+}
