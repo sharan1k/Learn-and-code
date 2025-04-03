@@ -1,46 +1,55 @@
 #include <iostream>
 #include <string>
 
-class Wallet {
+class Wallet
+{
 private:
     float value;
 
 public:
     Wallet(float initialValue = 0.0f) : value(initialValue) {}
 
-    float getTotalMoney() const {
+    float getTotalMoney() const
+    {
         return value;
     }
 
-    void addMoney(float amount) {
+    void addMoney(float amount)
+    {
         value += amount;
     }
 
-    void subtractMoney(float amount) {
+    void subtractMoney(float amount)
+    {
         value -= amount;
     }
 };
 
-class Customer {
+class Customer
+{
 private:
     std::string firstName;
     std::string lastName;
     Wallet wallet;
 
 public:
-    Customer(const std::string& firstName, const std::string& lastName, float initialAmount)
+    Customer(const std::string &firstName, const std::string &lastName, float initialAmount)
         : firstName(firstName), lastName(lastName), wallet(initialAmount) {}
 
-    std::string getFirstName() const {
+    std::string getFirstName() const
+    {
         return firstName;
     }
 
-    std::string getLastName() const {
+    std::string getLastName() const
+    {
         return lastName;
     }
 
-    bool makePayment(float amount) {
-        if (wallet.getTotalMoney() >= amount) {
+    bool makePayment(float amount)
+    {
+        if (wallet.getTotalMoney() >= amount)
+        {
             wallet.subtractMoney(amount);
             return true;
         }
@@ -48,20 +57,25 @@ public:
         return false;
     }
 
-    void addMoneyToWallet(float amount) {
+    void addMoneyToWallet(float amount)
+    {
         wallet.addMoney(amount);
     }
 };
 
-int main() {
+int main()
+{
     Customer customer("sharan", "KM", 5000.0f);
     float payment = 2000.0f;
 
     bool paymentSuccessful = customer.makePayment(payment);
 
-    if (paymentSuccessful) {
+    if (paymentSuccessful)
+    {
         std::cout << "Payment of Rs." << payment << " was successful." << std::endl;
-    } else {
+    }
+    else
+    {
         std::cout << "Not enough money. Come back later." << std::endl;
     }
 

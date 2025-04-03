@@ -1,39 +1,47 @@
 #include <iostream>
 #include <string>
 
-class Employee {
+class Employee
+{
 private:
     std::string name;
     int age;
     float salary;
 
 public:
-    std::string getName() {
+    std::string getName()
+    {
         return name;
     }
 
-    void setName(std::string name) {
+    void setName(std::string name)
+    {
         this->name = name;
     }
 
-    int getAge() {
+    int getAge()
+    {
         return age;
     }
 
-    void setAge(int age) {
+    void setAge(int age)
+    {
         this->age = age;
     }
 
-    float getSalary() {
+    float getSalary()
+    {
         return salary;
     }
 
-    void setSalary(float salary) {
+    void setSalary(float salary)
+    {
         this->salary = salary;
     }
 };
 
-int main() {
+int main()
+{
     Employee employee;
 
     employee.setName("sharan");
@@ -48,8 +56,9 @@ int main() {
 }
 
 /*
-The employee is considered an object because it is a specific instance of the `Employee` class. 
-It stores actual data for the class's attributes like name, age etc. and can perform operations 
-using the methods defined in the class. As an object, it brings the class blueprint to life
-by holding and managing concrete information.
+The `Employee` class can be considered a data structure because it defines a
+template for storing related information, such as an employee's name, age,
+and salary. It organizes these attributes into a single unit, encapsulating
+employee data in a structured manner. However, unlike simple data structures,
+it also includes methods to get and set these values, enhancing its functionality.
 */
