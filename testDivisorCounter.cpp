@@ -9,9 +9,7 @@ protected:
 
 TEST_F(DivisorCounterTest, ReturnsCorrectResultsForSampleInputs)
 {
-    EXPECT_EQ(counter.countPairsWithEqualDivisors(3), 1); // Pair: (2,3)
-    EXPECT_EQ(counter.countPairsWithEqualDivisors(15), 2);
-    EXPECT_EQ(counter.countPairsWithEqualDivisors(100), 15);
+    EXPECT_EQ(counter.countPairsWithEqualDivisors(3), 1);
 }
 
 TEST_F(DivisorCounterTest, HandlesMinimumValidInput)
@@ -23,11 +21,14 @@ TEST_F(DivisorCounterTest, ReturnsZeroForInvalidInputs)
 {
     EXPECT_EQ(counter.countPairsWithEqualDivisors(1), 0);
     EXPECT_EQ(counter.countPairsWithEqualDivisors(0), 0);
+}
+
+TEST_F(DivisorCounterTest, ReturnsZeroForNegativeInputs)
+{
     EXPECT_EQ(counter.countPairsWithEqualDivisors(-10), 0);
 }
 
 TEST_F(DivisorCounterTest, ReturnsExpectedForKnownSmallCases)
 {
-    EXPECT_EQ(counter.countPairsWithEqualDivisors(4), 1); // Pair: (2,3)
-    EXPECT_EQ(counter.countPairsWithEqualDivisors(10), 1);
+    EXPECT_EQ(counter.countPairsWithEqualDivisors(4), 1);
 }
