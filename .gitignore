@@ -1,32 +1,42 @@
-# Prerequisites
-*.d
+# Build directories
+**/build/
+**/out/
+**/CMakeFiles/
+**/cmake-build*/
 
-# Compiled Object files
-*.slo
-*.lo
+# CMake generated files
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.a
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
+*.exe
+*.dll
 *.so
 *.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
 *.lib
+*.cmake
+!CMakeLists.txt
 
-# Executables
-*.exe
-*.out
-*.app
+# Compiled binaries
+newsagg_client
+newsagg_server
+
+# IDE files
+.idea/
+.vs/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+vcpkg/
+conan/
+
+httplib.h
+nlohmann
