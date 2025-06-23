@@ -26,9 +26,9 @@ public:
              std::function<void(const httplib::Result&)> callback);
 
 private:
-    std::string m_host;
-    int m_port;
-    httplib::Client m_client;
+    std::string host;
+    int port;
+    httplib::Client client;
 };
 
 #endif // HTTP_CLIENT_H

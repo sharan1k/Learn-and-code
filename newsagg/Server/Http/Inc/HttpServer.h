@@ -20,13 +20,14 @@ public:
     void del(const std::string& path, std::function<void(const httplib::Request&, httplib::Response&)> handler);
     bool start();
     void stop();
-    bool isRunning() const;
+    bool isServerRunning() const;
+    void printRegisteredPaths() const;
 
 private:
-    int m_port;
-    httplib::Server m_server;
-    std::unique_ptr<std::thread> m_serverThread;
-    bool m_isRunning;
+    int port;
+    httplib::Server server;
+    std::unique_ptr<std::thread> serverThread;
+    bool isRunning;
 };
 
 #endif // HTTP_SERVER_H
