@@ -1,11 +1,9 @@
-#include "HttpClient.h"
+#include "ClientApplication/Inc/ClientApplication.h"
 #include <iostream>
 #include <string>
-#include <thread>
-#include <chrono>
 
 int main(int argc, char** argv) {
-    std::cout << "NewsAgg Client Test Application" << std::endl;
+    std::cout << "News Aggregator Client" << std::endl;
     
     std::string host = "localhost";
     int port = 8080;
@@ -23,34 +21,13 @@ int main(int argc, char** argv) {
     }
     
     std::cout << "Connecting to server at " << host << ":" << port << std::endl;
-    
-   
-    HttpClient client(host, port);
-    
-    std::cout << "Testing GET request to /api/test..." << std::endl;
-    client.get("/api/test", [](const httplib::Result& result) {
-        if (result) {
-            std::cout << "Response status: " << result->status << std::endl;
-            std::cout << "Response body: " << result->body << std::endl;
-        } else {
-            std::cout << "Request failed: " << result.error() << std::endl;
-        }
-    });
-    
-    std::cout << "Testing POST request to /api/test..." << std::endl;
-    std::string jsonPayload = R"({"test":"Hello from client","timestamp":)" + 
-                              std::to_string(std::time(nullptr)) + "}";
-                              
-    client.post("/api/test", jsonPayload, [](const httplib::Result& result) {
-        if (result) {
-            std::cout << "Response status: " << result->status << std::endl;
-            std::cout << "Response body: " << result->body << std::endl;
-        } else {
-            std::cout << "Request failed: " << result.error() << std::endl;
-        }
-    });
-    
-    std::cout << "Tests completed." << std::endl;
+      try {
+        ClientApplication app(host, port);
+        app.start();
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
     
     return 0;
 }
