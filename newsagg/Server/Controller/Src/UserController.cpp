@@ -2,6 +2,11 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 
+UserService& UserController::getUserService() {
+    static UserService service;
+    return service;
+}
+
 void UserController::registerRoutes(HttpServer& server) {
     std::cout << "Registering user routes..." << std::endl;
     server.post("/api/users/signup", handleSignup);
@@ -23,38 +28,27 @@ void UserController::handleSignup(const httplib::Request& req, httplib::Response
             };
             res.set_content(errorResponse.dump(), "application/json");
             return;
-        }        UserDao userDao;
-        auto existingUser = userDao.findByEmail(newUser.emailId);
-        if (existingUser != nullptr) {
-            res.status = 409;
+        }
+        
+        std::shared_ptr<User> createdUser;
+        auto [success, message] = getUserService().registerUser(newUser, createdUser);
+        
+        if (success && createdUser != nullptr) {
+            res.status = 201;
+            nlohmann::json successResponse = {
+                {"status", "success"},
+                {"message", message},
+                {"user", createdUser->toJson()}
+            };
+            res.set_content(successResponse.dump(), "application/json");
+        } else {
+            res.status = message == "Email already registered." || message == "Username already taken." ? 409 : 500;
             nlohmann::json errorResponse = {
                 {"status", "error"},
-                {"message", "Email already registered."}
+                {"message", message}
             };
             res.set_content(errorResponse.dump(), "application/json");
-            return;
         }
-        
-        if (userDao.createUser(newUser)) {
-            auto createdUser = userDao.findByEmail(newUser.emailId);
-            if (createdUser != nullptr) {
-                res.status = 201;
-                nlohmann::json successResponse = {
-                    {"status", "success"},
-                    {"message", "User registered successfully."},
-                    {"user", createdUser->toJson()}
-                };
-                res.set_content(successResponse.dump(), "application/json");
-                return;
-            }
-        }
-        
-        res.status = 500;
-        nlohmann::json errorResponse = {
-            {"status", "error"},
-            {"message", "Failed to register user."}
-        };
-        res.set_content(errorResponse.dump(), "application/json");
         
     } catch (const nlohmann::json::parse_error& e) {
         res.status = 400; 
@@ -77,7 +71,8 @@ void UserController::handleLogin(const httplib::Request& req, httplib::Response&
     std::cout << "Received login request" << std::endl;
     
     try {
-        nlohmann::json requestData = nlohmann::json::parse(req.body);        
+        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        
         if (!requestData.contains("userName") || !requestData.contains("password")) {
             res.status = 400;
             nlohmann::json errorResponse = {
@@ -91,8 +86,7 @@ void UserController::handleLogin(const httplib::Request& req, httplib::Response&
         std::string userName = requestData["userName"].get<std::string>();
         std::string password = requestData["password"].get<std::string>();
         
-        UserDao userDao;
-        auto user = userDao.verifyLoginByUsername(userName, password);if (user != nullptr) {
+        auto user = getUserService().authenticateUser(userName, password);if (user != nullptr) {
             nlohmann::json successResponse = {
                 {"status", "success"},
                 {"message", "Login successful."},

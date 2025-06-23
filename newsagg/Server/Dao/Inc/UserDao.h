@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Inc/DbConnection.h"
-#include "../../Controller/Inc/User.h"
+#include "../../Dto/Inc/User.h"
 #include <memory>
 #include <vector>
 #include <string>

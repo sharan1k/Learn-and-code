@@ -53,7 +53,7 @@ void ClientApplication::handleLogin() {
     userHandler->login(username, password, [this, &requestComplete](bool success, const std::string& message, const User* user) {
         if (success) {
             isLoggedIn = true;
-            currentUser = const_cast<User*>(user); // Safe since UserHandler owns the user
+            currentUser = const_cast<User*>(user); 
             std::cout << "Login successful! Welcome, " << user->userName << "!" << std::endl;
         } else {
             std::cout << "Login failed: " << message << std::endl;
@@ -62,7 +62,7 @@ void ClientApplication::handleLogin() {
     });
     
     int timeout = 0;
-    while (!requestComplete && timeout < 50) { // 5 second timeout
+    while (!requestComplete && timeout < 50) { 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         timeout++;
     }
@@ -113,7 +113,7 @@ void ClientApplication::handleSignup() {
     });
     
     int timeout = 0;
-    while (!requestComplete && timeout < 50) { // 5 second timeout
+    while (!requestComplete && timeout < 50) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         timeout++;
     }

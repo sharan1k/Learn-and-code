@@ -62,13 +62,6 @@ int main(int argc, char** argv) {
     UserController::registerRoutes(server);
     std::cout << "User controller routes registered." << std::endl;
     
-    // Add a simple test route to verify routing works
-    server.post("/api/test", [](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "Test API called" << std::endl;
-        res.set_content("{\"status\":\"ok\"}", "application/json");
-    });      // Print debug information about registered routes
-    server.printRegisteredPaths();
-    
     server.get("/api/health", [](const httplib::Request& req, httplib::Response& res) {
         nlohmann::json healthStatus = {
             {"status", "ok"},
@@ -78,7 +71,6 @@ int main(int argc, char** argv) {
     
     std::cout << "Starting server on port " << port << "..." << std::endl;
     
-    // Print registered routes for debugging
     server.printRegisteredPaths();
     
     if (!server.start()) {

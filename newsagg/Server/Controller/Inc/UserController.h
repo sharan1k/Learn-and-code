@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Inc/User.h"
-#include "../../Dao/Inc/UserDao.h"
+#include "../../Dto/Inc/User.h"
+#include "../../Service/Inc/UserService.h"
 #include "../../Http/Inc/HttpServer.h"
 #include <functional>
 
@@ -12,4 +12,5 @@ public:
 private:
     static void handleSignup(const httplib::Request& req, httplib::Response& res);
     static void handleLogin(const httplib::Request& req, httplib::Response& res);
+    static UserService& getUserService();
 };

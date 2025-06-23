@@ -36,7 +36,7 @@ if(MYSQLCPPCONN_INCLUDE_DIR AND MYSQLCPPCONN_LIBRARY)
     message(STATUS "  Include: ${MYSQLCPPCONN_INCLUDE_DIR}")
     message(STATUS "  Library: ${MYSQLCPPCONN_LIBRARY}")
 else()
-    message(FATAL_ERROR "MySQL Connector/C++ not found")
+    message(FATAL_ERROR "MySQL Connector/C++ not found. Please install the MySQL Connector/C++ development package.")
 endif()
 
 if(NLOHMANN_JSON_INCLUDE_DIR)
@@ -59,6 +59,11 @@ add_library(httpserver
     Http/Src/HttpServer.cpp
 )
 
+# Service library
+add_library(service
+    Service/Src/UserService.cpp
+)
+
 # Controller library
 add_library(controller
     Controller/Src/UserController.cpp
@@ -69,6 +74,19 @@ target_include_directories(httpserver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Http/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
+    ${MYSQLCPPCONN_INCLUDE_DIR}
+    ${NLOHMANN_JSON_INCLUDE_DIR}
+)
+
+# Include directories for service
+target_include_directories(service PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Http/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controller/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Service/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
@@ -79,12 +97,19 @@ target_include_directories(controller PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Http/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Controller/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Service/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
 
-# Link controller with dbconnection
+# Link controller with service
 target_link_libraries(controller
+    service
+)
+
+# Link service with dbconnection
+target_link_libraries(service
     dbconnection
 )
 
@@ -96,7 +121,7 @@ add_library(dbconnection
 
 target_include_directories(dbconnection PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controller/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
@@ -111,8 +136,9 @@ add_executable(newsagg_server server_main.cpp)
 # Link libraries
 target_link_libraries(newsagg_server 
     PRIVATE 
-    controller  # controller must come before dbconnection since it depends on it
+    controller  # controller depends on service and dbconnection
     httpserver
+    service
     dbconnection
     Threads::Threads
     ${MYSQLCPPCONN_LIBRARY}
