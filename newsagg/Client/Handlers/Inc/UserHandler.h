@@ -2,19 +2,11 @@
 #define USER_HANDLER_H
 
 #include "../../Http/Inc/HttpClient.h"
+#include "../../../Common/Inc/Dto/User.h"
 #include <nlohmann/json.hpp>
 #include <string>
 #include <memory>
 #include <functional>
-
-struct User {
-    unsigned int userId;
-    std::string userName;
-    std::string emailId;
-    std::string role;
-    
-    static User fromJson(const nlohmann::json& json);
-};
 
 class UserHandler {
 public:

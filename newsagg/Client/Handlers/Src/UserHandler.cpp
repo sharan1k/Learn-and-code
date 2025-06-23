@@ -2,15 +2,6 @@
 #include <iostream>
 #include <regex>
 
-User User::fromJson(const nlohmann::json& json) {
-    User user;
-    if (json.contains("userId")) user.userId = json["userId"].get<unsigned int>();
-    if (json.contains("userName")) user.userName = json["userName"].get<std::string>();
-    if (json.contains("emailId")) user.emailId = json["emailId"].get<std::string>();
-    if (json.contains("role")) user.role = json["role"].get<std::string>();
-    return user;
-}
-
 UserHandler::UserHandler(std::shared_ptr<HttpClient> client)
     : client(client) {
 }

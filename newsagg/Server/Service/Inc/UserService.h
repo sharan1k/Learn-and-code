@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Dto/Inc/User.h"
+#include "../../../Common/Inc/Dto/User.h"
 #include "../Inc/UserService.h"
 #include "../../Dao/Inc/UserDao.h"
 #include <memory>

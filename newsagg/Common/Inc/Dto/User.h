@@ -12,7 +12,7 @@ struct User {
 
     User() : userId(0), role("user") {}
 
-    User(const std::string& name, const std::string& email, const std::string& pwd)
+    User(const std::string& name, const std::string& email, const std::string& pwd = "")
         : userId(0), userName(name), emailId(email), password(pwd), role("user") {}
 
     nlohmann::json toJson() const {

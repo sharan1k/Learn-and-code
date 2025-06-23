@@ -74,7 +74,6 @@ target_include_directories(httpserver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Http/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
@@ -86,7 +85,6 @@ target_include_directories(service PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Controller/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Service/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
@@ -98,7 +96,6 @@ target_include_directories(controller PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Controller/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Service/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
@@ -121,7 +118,7 @@ add_library(dbconnection
 
 target_include_directories(dbconnection PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Dto/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
     ${MYSQLCPPCONN_INCLUDE_DIR}
     ${NLOHMANN_JSON_INCLUDE_DIR}
 )
