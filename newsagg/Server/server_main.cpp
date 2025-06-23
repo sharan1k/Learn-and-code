@@ -1,7 +1,11 @@
 #include "HttpServer.h"
+#include "Dao/Inc/DbConnection.h"
+#include "Controller/Inc/UserController.h"
+#include <nlohmann/json.hpp>
 #include <iostream>
 #include <string>
 #include <csignal>
+#include <ctime>
 
 HttpServer* g_server = nullptr;
 
@@ -13,8 +17,31 @@ void signalHandler(int signum) {
     exit(signum);
 }
 
+void initDbConnection() {
+    const std::string dbHost = "tcp://172.24.160.1:3306";
+    const std::string dbUser = "root";
+    const std::string dbPassword = "your_password";
+    const std::string dbSchema = "newsaggregator";
+ 
+    std::cout << "Initializing database connection to " << dbHost << "..." << std::endl;
+    try {
+        DbConnection::initDbConnection(dbHost, dbUser, dbPassword, dbSchema);
+        std::cout << "Database connection initialized successfully." << std::endl;
+    } catch (sql::SQLException &e) {
+        std::cerr << "SQLException: " << e.what() << std::endl;
+        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+        std::cerr << "ErrorCode: " << e.getErrorCode() << std::endl;
+        std::cerr << "Server will continue without database connectivity." << std::endl;
+    } catch (std::exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Server will continue without database connectivity." << std::endl;
+    }
+}
+
 int main(int argc, char** argv) {
     std::cout << "NewsAgg Server Test Application" << std::endl;
+    
+    initDbConnection();
     
     int port = 8080;
 
@@ -28,36 +55,32 @@ int main(int argc, char** argv) {
     }
     
     HttpServer server(port);
-    g_server = &server;
-    
-    signal(SIGINT, signalHandler);
+    g_server = &server;    signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
     
-    server.get("/api/test", [](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "Received GET request at /api/test" << std::endl;
-        
-        std::string response = R"({
-            "message": "Hello from server",
-            "timestamp": )" + std::to_string(std::time(nullptr)) + R"(
-        })";
-        
-        res.set_content(response, "application/json");
-    });
+    std::cout << "Registering user controller routes..." << std::endl;
+    UserController::registerRoutes(server);
+    std::cout << "User controller routes registered." << std::endl;
     
+    // Add a simple test route to verify routing works
     server.post("/api/test", [](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "Received POST request at /api/test" << std::endl;
-        std::cout << "Request body: " << req.body << std::endl;
-        
-        std::string response = R"({
-            "serverMessage": "Successfully received POST data",
-            "timestamp": )" + std::to_string(std::time(nullptr)) + R"(,
-            "receivedData": )" + req.body + R"(
-        })";
-        
-        res.set_content(response, "application/json");
-    });
+        std::cout << "Test API called" << std::endl;
+        res.set_content("{\"status\":\"ok\"}", "application/json");
+    });      // Print debug information about registered routes
+    server.printRegisteredPaths();
+    
+    server.get("/api/health", [](const httplib::Request& req, httplib::Response& res) {
+        nlohmann::json healthStatus = {
+            {"status", "ok"},
+            {"serverTime", std::to_string(std::time(nullptr))}
+        };
+        res.set_content(healthStatus.dump(), "application/json");    });
     
     std::cout << "Starting server on port " << port << "..." << std::endl;
+    
+    // Print registered routes for debugging
+    server.printRegisteredPaths();
+    
     if (!server.start()) {
         std::cerr << "Failed to start server on port " << port << std::endl;
         return 1;
@@ -65,7 +88,7 @@ int main(int argc, char** argv) {
     
     std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
     
-    while (server.isRunning()) {
+    while (server.isServerRunning()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     
