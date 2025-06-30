@@ -11,7 +11,7 @@ struct Article {
     std::string source;
     std::string url;
     unsigned int categoryId;
-    std::string publishedAt;  // Using string for datetime to simplify JSON serialization
+    std::string publishedAt;  
 
     Article() : articleId(0), categoryId(0) {}
 

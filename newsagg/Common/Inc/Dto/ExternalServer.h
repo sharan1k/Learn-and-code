@@ -12,7 +12,7 @@ struct ExternalServer {
     unsigned int apiId;
     std::string apiName;
     ApiStatus apiStatus;
-    std::string lastAccessed;  // Using string for datetime to simplify JSON serialization
+    std::string lastAccessed;  
     std::string apiKey;
 
     ExternalServer() : apiId(0), apiStatus(ApiStatus::NOT_ACTIVE) {}
