@@ -3,6 +3,7 @@ project(NewsAggServer VERSION 1.0)
 
 # Find required packages
 find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Find MySQL Connector/C++
 find_path(MYSQLCPPCONN_INCLUDE_DIR NAMES cppconn/driver.h
@@ -110,10 +111,19 @@ target_link_libraries(service
     dbconnection
 )
 
+# News sources library
+add_library(newssources
+    NewsSources/Src/TheNewsApi.cpp
+    NewsSources/Src/NewsSourceManager.cpp
+)
+
 # Database connection library
 add_library(dbconnection
     Dao/Src/DbConnection.cpp
     Dao/Src/UserDao.cpp
+    Dao/Src/ArticleDao.cpp
+    Dao/Src/CategoryDao.cpp
+    Dao/Src/ExternalServerDao.cpp
 )
 
 target_include_directories(dbconnection PUBLIC 
@@ -131,14 +141,35 @@ target_link_libraries(dbconnection
 add_executable(newsagg_server server_main.cpp)
 
 # Link libraries
+target_include_directories(newssources PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/NewsSources/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
+    ${MYSQLCPPCONN_INCLUDE_DIR}
+    ${NLOHMANN_JSON_INCLUDE_DIR}
+)
+
+target_link_libraries(newssources
+    dbconnection
+)
+
+# Update target include directories for newsagg_server to include Config
+target_include_directories(newsagg_server PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Config/Inc
+)
+
+# Link libraries for newsagg_server
 target_link_libraries(newsagg_server 
     PRIVATE 
     controller  # controller depends on service and dbconnection
     httpserver
     service
+    newssources
     dbconnection
     Threads::Threads
     ${MYSQLCPPCONN_LIBRARY}
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 # Install rules
@@ -148,3 +179,6 @@ install(TARGETS newsagg_server RUNTIME DESTINATION bin)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Add compiler definitions for OpenSSL support
+add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT)

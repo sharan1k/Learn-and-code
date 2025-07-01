@@ -1,16 +1,22 @@
 #include "HttpServer.h"
 #include "Dao/Inc/DbConnection.h"
 #include "Controller/Inc/UserController.h"
+#include "NewsSources/Inc/NewsSourceManager.h"
+#include "NewsSources/Inc/TheNewsApi.h"
+#include "Config/Inc/Config.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <string>
 #include <csignal>
 #include <ctime>
+#include <memory>
 
 HttpServer* g_server = nullptr;
 
 void signalHandler(int signum) {
     std::cout << "Signal received (" << signum << "). Shutting down..." << std::endl;
+    NewsSourceManager::getInstance().stopFetchingNews();
+    
     if (g_server) {
         g_server->stop();
     }
@@ -18,10 +24,10 @@ void signalHandler(int signum) {
 }
 
 void initDbConnection() {
-    const std::string dbHost = "tcp://172.24.160.1:3306";
-    const std::string dbUser = "root";
-    const std::string dbPassword = "your_password";
-    const std::string dbSchema = "newsaggregator";
+    const std::string& dbHost = Config::DATABASE_HOST;
+    const std::string& dbUser = Config::DATABASE_USER;
+    const std::string& dbPassword = Config::DATABASE_PASSWORD;
+    const std::string& dbSchema = Config::DATABASE_SCHEMA;
  
     std::cout << "Initializing database connection to " << dbHost << "..." << std::endl;
     try {
@@ -43,7 +49,7 @@ int main(int argc, char** argv) {
     
     initDbConnection();
     
-    int port = 8080;
+    int port = Config::SERVER_PORT;
 
     if (argc >= 2) {
         try {
@@ -55,7 +61,8 @@ int main(int argc, char** argv) {
     }
     
     HttpServer server(port);
-    g_server = &server;    signal(SIGINT, signalHandler);
+    g_server = &server;    
+    signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
     
     std::cout << "Registering user controller routes..." << std::endl;
@@ -80,9 +87,38 @@ int main(int argc, char** argv) {
     
     std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
     
+    auto& newsManager = NewsSourceManager::getInstance();
+    newsManager.loadNewsSourcesFromDatabase();
+    const std::string& theNewsApiKey = Config::THE_NEWS_API_KEY;
+    
+    if (theNewsApiKey.empty() || theNewsApiKey == "YOUR_API_KEY_HERE") {
+        std::cerr << "Warning: THE_NEWS_API_KEY not properly configured. TheNewsApi will not be registered." << std::endl;
+    } else {
+        auto theNewsApi = std::make_shared<TheNewsApi>();
+        if (newsManager.registerNewsSource(theNewsApi, theNewsApiKey)) {
+            std::cout << "TheNewsApi registered successfully." << std::endl;
+        }
+    }
+    
+    int fetchIntervalMinutes = Config::NEWS_FETCH_INTERVAL_MINUTES;
+    
+    newsManager.startFetchingNews(fetchIntervalMinutes);
+    
+    std::string timeMessage;
+    if (fetchIntervalMinutes >= 60 && fetchIntervalMinutes % 60 == 0) {
+        int hours = fetchIntervalMinutes / 60;
+        timeMessage = std::to_string(hours) + "-hour" + (hours > 1 ? "s" : "");
+    } else {
+        timeMessage = std::to_string(fetchIntervalMinutes) + "-minute" + (fetchIntervalMinutes > 1 ? "s" : "");
+    }
+    
+    std::cout << "News auto-fetch started with " << timeMessage << " interval for all active sources." << std::endl;
+    
     while (server.isServerRunning()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    
+    NewsSourceManager::getInstance().stopFetchingNews();
     
     std::cout << "Server stopped." << std::endl;
     return 0;
