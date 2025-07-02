@@ -3,7 +3,7 @@
 #include "Controller/Inc/UserController.h"
 #include "NewsSources/Inc/NewsSourceManager.h"
 #include "NewsSources/Inc/TheNewsApi.h"
-#include "Config/Inc/Config.h"
+#include "Config.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <string>
