@@ -2,7 +2,6 @@
 #include "Dao/Inc/DbConnection.h"
 #include "Controller/Inc/UserController.h"
 #include "NewsSources/Inc/NewsSourceManager.h"
-#include "NewsSources/Inc/TheNewsApi.h"
 #include "Config.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -74,7 +73,8 @@ int main(int argc, char** argv) {
             {"status", "ok"},
             {"serverTime", std::to_string(std::time(nullptr))}
         };
-        res.set_content(healthStatus.dump(), "application/json");    });
+        res.set_content(healthStatus.dump(), "application/json");    
+    });
     
     std::cout << "Starting server on port " << port << "..." << std::endl;
     
@@ -86,22 +86,10 @@ int main(int argc, char** argv) {
     }
     
     std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
-    
     auto& newsManager = NewsSourceManager::getInstance();
     newsManager.loadNewsSourcesFromDatabase();
-    const std::string& theNewsApiKey = Config::THE_NEWS_API_KEY;
-    
-    if (theNewsApiKey.empty() || theNewsApiKey == "YOUR_API_KEY_HERE") {
-        std::cerr << "Warning: THE_NEWS_API_KEY not properly configured. TheNewsApi will not be registered." << std::endl;
-    } else {
-        auto theNewsApi = std::make_shared<TheNewsApi>();
-        if (newsManager.registerNewsSource(theNewsApi, theNewsApiKey)) {
-            std::cout << "TheNewsApi registered successfully." << std::endl;
-        }
-    }
     
     int fetchIntervalMinutes = Config::NEWS_FETCH_INTERVAL_MINUTES;
-    
     newsManager.startFetchingNews(fetchIntervalMinutes);
     
     std::string timeMessage;

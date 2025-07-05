@@ -114,6 +114,7 @@ target_link_libraries(service
 # News sources library
 add_library(newssources
     NewsSources/Src/TheNewsApi.cpp
+    NewsSources/Src/NewsApi.cpp
     NewsSources/Src/NewsSourceManager.cpp
 )
 

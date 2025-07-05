@@ -8,10 +8,10 @@
 class ArticleDao;
 class CategoryDao;
 
-class TheNewsApi : public INewsSource {
+class NewsApi : public INewsSource {
 public:
-    TheNewsApi();
-    ~TheNewsApi() override;
+    NewsApi();
+    ~NewsApi() override;
     
     std::vector<Article> fetchNews() override;
     bool initialize(const std::string& apiKey) override;

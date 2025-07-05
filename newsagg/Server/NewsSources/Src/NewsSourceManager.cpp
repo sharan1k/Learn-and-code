@@ -1,5 +1,6 @@
 #include "../Inc/NewsSourceManager.h"
 #include "../Inc/TheNewsApi.h"
+#include "../Inc/NewsApi.h"
 #include <iostream>
 #include <chrono>
 #include <iomanip>
@@ -17,109 +18,65 @@ NewsSourceManager& NewsSourceManager::getInstance() {
     return instance;
 }
 
-bool NewsSourceManager::registerNewsSource(std::shared_ptr<INewsSource> newsSource, const std::string& apiKey) {
+bool NewsSourceManager::initializeNewsSource(std::shared_ptr<INewsSource> newsSource, const std::string& apiKey) {
     if (!newsSource) {
-        std::cerr << "Error: Cannot register null news source" << std::endl;
+        std::cerr << "Error: Cannot initialize null news source" << std::endl;
         return false;
     }
     
     const std::string& sourceName = newsSource->getName();
     
-    {
-        std::lock_guard<std::mutex> lock(sourcesMutex);
-        auto it = newsSources.find(sourceName);
-        if (it != newsSources.end()) {
-            std::cout << "News source '" << sourceName << "' is already registered." << std::endl;
-            return true;
-        }
-    }
-    
-    auto existingServer = serverDao.findByName(sourceName);
-    
-    if (!existingServer) {
-        ExternalServer server;
-        server.apiName = sourceName;
-        server.apiStatus = ApiStatus::ACTIVE;
-        auto now = std::chrono::system_clock::now();
-        auto in_time_t = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-        server.lastAccessed = ss.str();
-        
-        server.apiKey = apiKey;
-        
-        if (!serverDao.createExternalServer(server)) {
-            std::cerr << "Failed to register news source '" << sourceName << "' in the database." << std::endl;
-            return false;
-        }
-        
-        std::cout << "News source '" << sourceName << "' registered in the database." << std::endl;
-    } else if (!apiKey.empty() && existingServer->apiKey != apiKey) {
-        existingServer->apiKey = apiKey;
-        if (!serverDao.updateExternalServer(*existingServer)) {
-            std::cerr << "Failed to update API key for news source '" << sourceName << "'." << std::endl;
-            return false;
-        }
-    }
-    
-    std::string effectiveApiKey = apiKey;
-    if (existingServer && apiKey.empty()) {
-        effectiveApiKey = existingServer->apiKey;
-    }
-    
-    if (!newsSource->initialize(effectiveApiKey)) {
+    if (!newsSource->initialize(apiKey)) {
         std::cerr << "Failed to initialize news source '" << sourceName << "'." << std::endl;
         return false;
     }
     
-    if (existingServer) {
-        newsSource->setActive(existingServer->apiStatus == ApiStatus::ACTIVE);
-    }
-    
-    {
-        std::lock_guard<std::mutex> lock(sourcesMutex);
-        newsSources[sourceName] = newsSource;
-    }
-    
-    std::cout << "News source '" << sourceName << "' registered and initialized." << std::endl;
+    std::cout << "News source '" << sourceName << "' initialized." << std::endl;
     return true;
 }
 
 void NewsSourceManager::startFetchingNews(int intervalMinutes) {
-    std::lock_guard<std::mutex> lock(sourcesMutex);
+    if (isFetching) {
+        std::cout << "News auto-fetch is already running. Stopping existing fetch before starting new one." << std::endl;
+        stopFetchingNews();
+    }
     
-    for (auto& pair : newsSources) {
-        auto& newsSource = pair.second;
-        if (newsSource && newsSource->isActive()) {
-            if (auto theNewsApi = std::dynamic_pointer_cast<TheNewsApi>(newsSource)) {
-                theNewsApi->startAutoFetch(intervalMinutes);
-                
-                std::string timeMessage;
-                if (intervalMinutes >= 60 && intervalMinutes % 60 == 0) {
-                    int hours = intervalMinutes / 60;
-                    timeMessage = std::to_string(hours) + "-hour" + (hours > 1 ? "s" : "");
-                } else {
-                    timeMessage = std::to_string(intervalMinutes) + "-minute" + (intervalMinutes > 1 ? "s" : "");
-                }
-                
-                std::cout << "Started auto-fetch for news source '" << newsSource->getName() 
-                          << "' with " << timeMessage << " interval." << std::endl;
+    std::string timeMessage;
+    if (intervalMinutes >= 60 && intervalMinutes % 60 == 0) {
+        int hours = intervalMinutes / 60;
+        timeMessage = std::to_string(hours) + "-hour" + (hours > 1 ? "s" : "");
+    } else {
+        timeMessage = std::to_string(intervalMinutes) + "-minute" + (intervalMinutes > 1 ? "s" : "");
+    }
+    
+    std::cout << "Starting sequential news fetching with " << timeMessage << " interval..." << std::endl;
+    
+    isFetching = true;
+    fetchThread = std::thread([this, intervalMinutes]() {
+        this->fetchNewsSequentially();
+        
+        while (isFetching) {
+            std::this_thread::sleep_for(std::chrono::minutes(intervalMinutes));
+            
+            if (isFetching) {
+                this->fetchNewsSequentially();
             }
         }
-    }
+    });
+    fetchThread.detach();
+    
+    std::cout << "News auto-fetch started with " << timeMessage << " interval for all active sources." << std::endl;
 }
 
 void NewsSourceManager::stopFetchingNews() {
-    std::lock_guard<std::mutex> lock(sourcesMutex);
-    
-    for (auto& pair : newsSources) {
-        auto& newsSource = pair.second;
-        if (newsSource) {
-            if (auto theNewsApi = std::dynamic_pointer_cast<TheNewsApi>(newsSource)) {
-                theNewsApi->stopAutoFetch();
-                std::cout << "Stopped auto-fetch for news source '" << newsSource->getName() << "'." << std::endl;
-            }
+    if (isFetching) {
+        isFetching = false;
+                  
+        if (fetchThread.joinable()) {
+            fetchThread.join();
         }
+        
+        std::cout << "Stopped news auto-fetch." << std::endl;
     }
 }
 
@@ -145,48 +102,26 @@ std::vector<std::shared_ptr<INewsSource>> NewsSourceManager::getAllNewsSources()
     return sources;
 }
 
-bool NewsSourceManager::addOrUpdateNewsSource(const std::string& name, const std::string& apiKey) {
-    auto source = getNewsSource(name);
-    if (source) {
-        if (!source->initialize(apiKey)) {
-            std::cerr << "Failed to update news source '" << name << "'." << std::endl;
-            return false;
-        }
-  
-        auto existingServer = serverDao.findByName(name);
-        if (existingServer) {
-            existingServer->apiKey = apiKey;
-            if (!serverDao.updateExternalServer(*existingServer)) {
-                std::cerr << "Failed to update API key for news source '" << name << "'." << std::endl;
-                return false;
-            }
-        }
-    } else {
-        auto newSource = createNewsSource(name);
-        if (!newSource) {
-            std::cerr << "Failed to create news source '" << name << "'." << std::endl;
-            return false;
-        }
-        
-        if (!registerNewsSource(newSource, apiKey)) {
-            std::cerr << "Failed to register news source '" << name << "'." << std::endl;
-            return false;
-        }
-    }
-    
-    return true;
-}
-
 void NewsSourceManager::loadNewsSourcesFromDatabase() {
     auto servers = serverDao.getAllExternalServers();
     
     for (const auto& server : servers) {
+        {
+            std::lock_guard<std::mutex> lock(sourcesMutex);
+            if (newsSources.find(server->apiName) != newsSources.end()) {
+                std::cout << "News source '" << server->apiName << "' is already loaded." << std::endl;
+                continue;
+            }
+        }
+        
         auto newsSource = createNewsSource(server->apiName);
         if (newsSource) {
-            if (registerNewsSource(newsSource, server->apiKey)) {
+            if (initializeNewsSource(newsSource, server->apiKey)) {
+                newsSource->setActive(server->apiStatus == ApiStatus::ACTIVE);
+                
+                std::lock_guard<std::mutex> lock(sourcesMutex);
+                newsSources[server->apiName] = newsSource;
                 std::cout << "Loaded news source '" << server->apiName << "' from database." << std::endl;
-            } else {
-                std::cerr << "Failed to register news source '" << server->apiName << "'." << std::endl;
             }
         } else {
             std::cerr << "Unknown news source type: '" << server->apiName << "'." << std::endl;
@@ -195,37 +130,77 @@ void NewsSourceManager::loadNewsSourcesFromDatabase() {
 }
 
 bool NewsSourceManager::fetchNewsNow() {
-    bool success = true;
-    
-    std::lock_guard<std::mutex> lock(sourcesMutex);
-    
-    for (auto& pair : newsSources) {
-        auto& newsSource = pair.second;
-        if (newsSource && newsSource->isActive()) {
-            try {
-                std::cout << "Fetching news from source '" << newsSource->getName() << "'..." << std::endl;
-                
-                auto articles = newsSource->fetchNews();
-                std::cout << "Fetched " << articles.size() << " articles from '" 
-                          << newsSource->getName() << "'." << std::endl;
-                
-                if (auto theNewsApi = std::dynamic_pointer_cast<TheNewsApi>(newsSource)) {
-                }
-            } catch (const std::exception& e) {
-                std::cerr << "Error fetching news from source '" << newsSource->getName() 
-                          << "': " << e.what() << std::endl;
-                success = false;
-            }
-        }
-    }
-    
-    return success;
+    std::cout << "Manually fetching news from all sources sequentially..." << std::endl;
+    return fetchNewsSequentially();
 }
 
 std::shared_ptr<INewsSource> NewsSourceManager::createNewsSource(const std::string& name) {
     if (name == "TheNewsApi") {
         return std::make_shared<TheNewsApi>();
+    } else if (name == "NewsApi") {
+        return std::make_shared<NewsApi>();
     }
     
     return nullptr;
+}
+
+bool NewsSourceManager::fetchNewsSequentially() {
+    bool overallSuccess = true;
+    std::vector<std::string> sourceOrder;
+    
+    {
+        std::shared_ptr<INewsSource> newsApi = getNewsSource("NewsApi");
+        if (newsApi && newsApi->isActive()) {
+            try {
+                std::cout << "Sequentially fetching news from source 'NewsApi'..." << std::endl;
+                
+                auto articles = newsApi->fetchNews();
+                std::cout << "Fetched " << articles.size() << " articles from 'NewsApi'." << std::endl;
+                
+                if (auto api = std::dynamic_pointer_cast<NewsApi>(newsApi)) {
+                    if (api->processAndStoreArticles(articles)) {
+                        std::cout << "Successfully processed and stored articles from 'NewsApi'." << std::endl;
+                    } else {
+                        std::cerr << "Failed to process some articles from 'NewsApi'." << std::endl;
+                        overallSuccess = false;
+                    }
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error fetching news from source 'NewsApi': " << e.what() << std::endl;
+                overallSuccess = false;
+            } catch (...) {
+                std::cerr << "Unknown error fetching news from source 'NewsApi'" << std::endl;
+                overallSuccess = false;
+            }
+        }
+    }
+    
+    {
+        std::shared_ptr<INewsSource> theNewsApi = getNewsSource("TheNewsApi");
+        if (theNewsApi && theNewsApi->isActive()) {
+            try {
+                std::cout << "Sequentially fetching news from source 'TheNewsApi'..." << std::endl;
+                auto articles = theNewsApi->fetchNews();
+                std::cout << "Fetched " << articles.size() << " articles from 'TheNewsApi'." << std::endl;
+                
+                if (auto api = std::dynamic_pointer_cast<TheNewsApi>(theNewsApi)) {
+                    if (api->processAndStoreArticles(articles)) {
+                        std::cout << "Successfully processed and stored articles from 'TheNewsApi'." << std::endl;
+                    } else {
+                        std::cerr << "Failed to process some articles from 'TheNewsApi'." << std::endl;
+                        overallSuccess = false;
+                    }
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error fetching news from source 'TheNewsApi': " << e.what() << std::endl;
+                overallSuccess = false;
+            } catch (...) {
+                std::cerr << "Unknown error fetching news from source 'TheNewsApi'" << std::endl;
+                overallSuccess = false;
+            }
+        }
+    }
+    
+    std::cout << "Sequential fetching complete." << std::endl;
+    return overallSuccess;
 }
