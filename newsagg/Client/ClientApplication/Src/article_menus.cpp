@@ -308,6 +308,7 @@ void ClientApplication::showSavedArticlesMenu() {
                 std::cout << "You don't have any saved articles yet." << std::endl;
             } else {
                 displaySavedArticles(articles);
+                requestComplete = true;
                 return;
             }
         } else {
@@ -364,10 +365,20 @@ void ClientApplication::handleSearchArticles() {
     
     std::cout << "Sort by:" << std::endl;
     std::cout << "1. Published date" << std::endl;
+    std::cout << "2. Likes descending" << std::endl;
+    std::cout << "3. Dislikes descending" << std::endl;
     
     std::string sortOption = getInput("Choose option: ");
     std::string sortBy = "date";
     bool isDescending = true;
+    
+    if (sortOption == "2") {
+        sortBy = "likes";
+        isDescending = true;
+    } else if (sortOption == "3") {
+        sortBy = "dislikes";
+        isDescending = true;
+    }
     
     std::cout << "\nSearch Results:" << std::endl;
     std::cout << "Searching for articles..." << std::endl;
@@ -379,15 +390,15 @@ void ClientApplication::handleSearchArticles() {
             if (articles.empty()) {
                 std::cout << "No articles found matching your search criteria." << std::endl;
             } else {
+                std::cout << "\nFound " << articles.size() << " article(s) matching your search criteria:" << std::endl;
                 displayHeadlines(articles);
-                return; 
             }
         } else {
             std::cout << "Failed to search articles: " << message << std::endl;
-        }
-        
-        for (Article* article : articles) {
-            delete article;
+            
+            for (Article* article : articles) {
+                delete article;
+            }
         }
         
         requestComplete = true;

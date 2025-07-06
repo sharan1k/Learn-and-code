@@ -358,7 +358,9 @@ void ArticleHandler::searchArticles(const std::string& query, int limit,
                                const std::string& startDate, const std::string& endDate,
                                const std::string& sortBy, bool isDescending,
                                HeadlinesCallback callback) {
-    std::string endpoint = "/api/articles/search?query=" + query;
+    std::string encodedQuery = httpClient->urlEncode(query);
+    
+    std::string endpoint = "/api/search?query=" + encodedQuery;
     
     if (limit > 0) {
         endpoint += "&limit=" + std::to_string(limit);
@@ -377,29 +379,41 @@ void ArticleHandler::searchArticles(const std::string& query, int limit,
         std::vector<Article*> articles;
         std::string message;
         bool success = result && result->status == 200;
-        std::string response = success ? result->body : "Failed to connect to server";
         
-        if (success) {
-            try {
-                nlohmann::json responseJson = nlohmann::json::parse(response);
-                
-                if (responseJson["status"] == "success") {
-                    for (const auto& articleJson : responseJson["data"]) {
-                        Article* article = new Article(Article::fromJson(articleJson));
-                        articles.push_back(article);
-                    }
+        if (result) {
+            std::cout << "Search request received response with status: " << result->status << std::endl;
+            
+            if (result->status == 200) {
+                try {
+                    nlohmann::json responseJson = nlohmann::json::parse(result->body);
                     
-                    message = responseJson["message"];
-                    callback(true, message, articles);
-                    return;
-                } else {
-                    message = responseJson["message"];
+                    if (responseJson["status"] == "success") {
+                        for (const auto& articleJson : responseJson["data"]) {
+                            Article* article = new Article(Article::fromJson(articleJson));
+                            articles.push_back(article);
+                        }
+                        
+                        message = responseJson["message"];
+                        callback(true, message, articles);
+                        return;
+                    } else {
+                        message = responseJson["message"];
+                    }
+                } catch (const std::exception& e) {
+                    message = "Failed to parse response: " + std::string(e.what());
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } else {
+                message = "Server returned error code: " + std::to_string(result->status);
+                nlohmann::json responseJson = nlohmann::json::parse(result->body);
+                if (responseJson.contains("message")) {
+                    message += " - " + responseJson["message"].get<std::string>();
+                }
             }
         } else {
-            message = "Failed to search articles: " + response;
+            message = "Failed to connect to server";
+            if (result.error() != httplib::Error::Success) {
+                message += " (Error code: " + std::to_string(static_cast<int>(result.error())) + ")";
+            }
         }
         
         callback(false, message, articles);
@@ -481,7 +495,6 @@ void ArticleHandler::dislikeArticle(unsigned int userId, unsigned int articleId,
     
     httpClient->post(endpoint, requestBody.dump(), httpCallback);
 }
-
 
 
 

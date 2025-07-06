@@ -424,7 +424,7 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticles(const std::stri
         std::string likePattern = "%" + query + "%";
         
         std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT a.*, c.name as categoryName FROM article a "
+            "SELECT a.*, c.categoryName as categoryName FROM article a "
             "LEFT JOIN category c ON a.categoryId = c.categoryId "
             "WHERE a.title LIKE ? OR a.description LIKE ? "
             "ORDER BY a.publishedAt DESC LIMIT ?"
@@ -469,7 +469,7 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticlesByDateRange(
         std::string likePattern = "%" + query + "%";
         
         std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT a.*, c.name as categoryName FROM article a "
+            "SELECT a.*, c.categoryName as categoryName FROM article a "
             "LEFT JOIN category c ON a.categoryId = c.categoryId "
             "WHERE (a.title LIKE ? OR a.description LIKE ?) "
             "AND DATE(a.publishedAt) BETWEEN ? AND ? "
@@ -528,7 +528,7 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticlesSortedByLikes(
         }
         
         std::string sql = 
-            "SELECT a.*, c.name as categoryName, "
+            "SELECT a.*, c.categoryName as categoryName, "
             "COUNT(CASE WHEN l.likeDislike = 'like' THEN 1 END) as likeCount, "
             "COUNT(CASE WHEN l.likeDislike = 'dislike' THEN 1 END) as dislikeCount "
             "FROM article a "
@@ -590,7 +590,7 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticlesByDateRangeSorte
         }
         
         std::string sql = 
-            "SELECT a.*, c.name as categoryName, "
+            "SELECT a.*, c.categoryName as categoryName, "
             "COUNT(CASE WHEN l.likeDislike = 'like' THEN 1 END) as likeCount, "
             "COUNT(CASE WHEN l.likeDislike = 'dislike' THEN 1 END) as dislikeCount "
             "FROM article a "

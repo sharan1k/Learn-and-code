@@ -247,3 +247,23 @@ bool HttpClient::del(const std::string& path,
     
     return success;
 }
+
+std::string HttpClient::urlEncode(const std::string& value) {
+    std::string result;
+    result.reserve(value.size());
+    
+    for (auto& c : value) {
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            result += c;
+        } else if (c == ' ') {
+            result += '+';
+        } else {
+            result += '%';
+            char hex[3];
+            sprintf(hex, "%02X", static_cast<unsigned char>(c));
+            result += hex;
+        }
+    }
+    
+    return result;
+}

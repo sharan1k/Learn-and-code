@@ -24,6 +24,8 @@ public:
 
     bool del(const std::string& path,
              std::function<void(const httplib::Result&)> callback);
+             
+    std::string urlEncode(const std::string& value);
 
 private:
     std::string host;

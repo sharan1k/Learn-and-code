@@ -11,6 +11,8 @@ ArticleService& ArticleController::getArticleService() {
 void ArticleController::registerRoutes(HttpServer& server) {
     std::cout << "Registering article routes..." << std::endl;
     
+    server.get("/api/search", handleSearchArticles);
+    
     server.get("/api/articles/headlines/today", handleGetTodayHeadlines);
     server.get("/api/articles/headlines/date-range", handleGetHeadlinesByDateRange);
     server.get("/api/articles/headlines/category/:categoryId", handleGetHeadlinesByCategory);
@@ -20,8 +22,6 @@ void ArticleController::registerRoutes(HttpServer& server) {
     server.post("/api/users/:userId/saved-articles", handleSaveArticle);
     server.get("/api/users/:userId/saved-articles", handleGetSavedArticles);
     server.del("/api/users/:userId/saved-articles/:articleId", handleRemoveSavedArticle);
-    
-    server.get("/api/articles/search", handleSearchArticles);
     
     server.post("/api/articles/:articleId/like", handleLikeArticle);
     server.post("/api/articles/:articleId/dislike", handleDislikeArticle);

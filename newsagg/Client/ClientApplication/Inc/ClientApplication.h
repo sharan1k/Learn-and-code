@@ -66,7 +66,7 @@ private:
     User* currentUser;
     bool isLoggedIn;
     bool isRunning;
-    std::map<unsigned int, std::string> categoryMap; s
+    std::map<unsigned int, std::string> categoryMap;
 };
 
 #endif // CLIENT_APPLICATION_H
