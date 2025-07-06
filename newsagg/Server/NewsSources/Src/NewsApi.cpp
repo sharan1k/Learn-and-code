@@ -20,7 +20,6 @@ NewsApi::NewsApi()
 }
 
 NewsApi::~NewsApi() {
-    // No cleanup needed
 }
 
 std::vector<Article> NewsApi::fetchNews() {
@@ -127,8 +126,6 @@ void NewsApi::setActive(bool isActive) {
         std::cerr << "Error updating API status for NewsAPI: " << e.what() << std::endl;
     }
 }
-
-// Removed unused auto-fetching methods as they've been replaced by sequential fetching in NewsSourceManager
 
 bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
     bool allSuccessful = true;

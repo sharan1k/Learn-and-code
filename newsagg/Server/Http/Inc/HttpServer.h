@@ -1,6 +1,7 @@
 #ifndef HTTP_SERVER_H
 #define HTTP_SERVER_H
 
+#include "HttplibConfig.h"
 #include "../../Common/Inc/httplib.h"
 #include <string>
 #include <functional>

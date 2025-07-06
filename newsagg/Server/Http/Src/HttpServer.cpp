@@ -1,10 +1,18 @@
 #include "HttpServer.h"
+#include "../../Config.h"
+#include <thread>
 
 HttpServer::HttpServer(int port) 
     : port(port),
       isRunning(false) {
-    server.set_read_timeout(5, 0); 
-    server.set_write_timeout(5, 0);
+    server.set_read_timeout(Config::SERVER_READ_TIMEOUT, 0); 
+    server.set_write_timeout(Config::SERVER_WRITE_TIMEOUT, 0);
+    server.set_keep_alive_max_count(Config::SERVER_KEEPALIVE_MAX_COUNT);
+    
+    #ifdef CPPHTTPLIB_THREAD_POOL_COUNT
+    int threadPoolSize = Config::SERVER_NUM_THREADS;
+    std::cout << "Server using thread pool size: " << threadPoolSize << std::endl;
+    #endif
     server.set_logger([](const httplib::Request &req, const httplib::Response &res) {
         std::cout << req.method << " " << req.path << " - Status: " << res.status << std::endl;
     });    server.set_error_handler([](const auto& req, auto& res) {

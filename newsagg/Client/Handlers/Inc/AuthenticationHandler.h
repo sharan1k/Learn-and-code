@@ -1,5 +1,5 @@
-#ifndef USER_HANDLER_H
-#define USER_HANDLER_H
+#ifndef AUTHENTICATION_HANDLER_H
+#define AUTHENTICATION_HANDLER_H
 
 #include "../../Http/Inc/HttpClient.h"
 #include "../../../Common/Inc/Dto/User.h"
@@ -8,9 +8,9 @@
 #include <memory>
 #include <functional>
 
-class UserHandler {
+class AuthenticationHandler {
 public:
-    UserHandler(std::shared_ptr<HttpClient> client);
+    AuthenticationHandler(std::shared_ptr<HttpClient> client);
     
     void login(const std::string& userName, 
                const std::string& password,
@@ -26,4 +26,4 @@ private:
     User currentUser;
 };
 
-#endif // USER_HANDLER_H
+#endif // AUTHENTICATION_HANDLER_H

@@ -1,12 +1,12 @@
-#include "../Inc/UserHandler.h"
+#include "../Inc/AuthenticationHandler.h"
 #include <iostream>
 #include <regex>
 
-UserHandler::UserHandler(std::shared_ptr<HttpClient> client)
+AuthenticationHandler::AuthenticationHandler(std::shared_ptr<HttpClient> client)
     : client(client) {
 }
 
-void UserHandler::login(
+void AuthenticationHandler::login(
     const std::string& userName, 
     const std::string& password,
     std::function<void(bool success, const std::string& message, const User* user)> callback) {
@@ -45,7 +45,7 @@ void UserHandler::login(
     });
 }
 
-void UserHandler::signup(
+void AuthenticationHandler::signup(
     const std::string& userName,
     const std::string& email,
     const std::string& password,

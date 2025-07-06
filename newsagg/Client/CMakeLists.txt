@@ -18,9 +18,10 @@ add_library(httpclient
     Http/Src/HttpClient.cpp
 )
 
-# User Handler library
-add_library(userhandler
-    Handlers/Src/UserHandler.cpp
+# Handlers library (combined)
+add_library(handlers
+    Handlers/Src/AuthenticationHandler.cpp
+    Handlers/Src/AdminHandler.cpp
 )
 
 # Client Application library
@@ -34,7 +35,7 @@ target_include_directories(httpclient PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Http/Inc
 )
 
-target_include_directories(userhandler PUBLIC 
+target_include_directories(handlers PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Http/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Handlers/Inc
@@ -51,7 +52,7 @@ target_include_directories(clientapp PUBLIC
 add_executable(newsagg_client client_main.cpp)
 
 # Link libraries
-target_link_libraries(userhandler
+target_link_libraries(handlers
     PRIVATE
     httpclient
     nlohmann_json::nlohmann_json
@@ -59,13 +60,12 @@ target_link_libraries(userhandler
 
 target_link_libraries(clientapp
     PRIVATE
-    userhandler
-)
+    handlers)
 
 target_link_libraries(newsagg_client 
     PRIVATE 
     httpclient
-    userhandler
+    handlers
     clientapp
     Threads::Threads
 )

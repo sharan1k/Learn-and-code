@@ -63,11 +63,14 @@ add_library(httpserver
 # Service library
 add_library(service
     Service/Src/UserService.cpp
+    Service/Src/ExternalServerService.cpp
+    Service/Src/CategoryService.cpp
 )
 
 # Controller library
 add_library(controller
     Controller/Src/UserController.cpp
+    Controller/Src/AdminController.cpp
 )
 
 # Include directories - directly reference Common from parent directory
@@ -141,6 +144,9 @@ target_link_libraries(dbconnection
 # Create server executable
 add_executable(newsagg_server server_main.cpp)
 
+# Create news fetcher executable
+add_executable(newsagg_fetcher news_fetcher_main.cpp)
+
 # Link libraries
 target_include_directories(newssources PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/NewsSources/Inc
@@ -173,8 +179,24 @@ target_link_libraries(newsagg_server
     OpenSSL::Crypto
 )
 
+# Link libraries for newsagg_fetcher
+target_link_libraries(newsagg_fetcher
+    PRIVATE
+    newssources
+    dbconnection
+    Threads::Threads
+    ${MYSQLCPPCONN_LIBRARY}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+# Add include directories for newsagg_fetcher
+target_include_directories(newsagg_fetcher PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Config/Inc
+)
+
 # Install rules
-install(TARGETS newsagg_server RUNTIME DESTINATION bin)
+install(TARGETS newsagg_server newsagg_fetcher RUNTIME DESTINATION bin)
 
 # Build settings
 set(CMAKE_CXX_STANDARD 17)

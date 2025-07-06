@@ -1,7 +1,7 @@
 #include "HttpServer.h"
 #include "Dao/Inc/DbConnection.h"
 #include "Controller/Inc/UserController.h"
-#include "NewsSources/Inc/NewsSourceManager.h"
+#include "Controller/Inc/AdminController.h"
 #include "Config.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -14,7 +14,6 @@ HttpServer* g_server = nullptr;
 
 void signalHandler(int signum) {
     std::cout << "Signal received (" << signum << "). Shutting down..." << std::endl;
-    NewsSourceManager::getInstance().stopFetchingNews();
     
     if (g_server) {
         g_server->stop();
@@ -44,7 +43,7 @@ void initDbConnection() {
 }
 
 int main(int argc, char** argv) {
-    std::cout << "NewsAgg Server Test Application" << std::endl;
+    std::cout << "NewsAgg Server Application" << std::endl;
     
     initDbConnection();
     
@@ -68,6 +67,10 @@ int main(int argc, char** argv) {
     UserController::registerRoutes(server);
     std::cout << "User controller routes registered." << std::endl;
     
+    std::cout << "Registering admin controller routes..." << std::endl;
+    AdminController::registerRoutes(server);
+    std::cout << "Admin controller routes registered." << std::endl;
+    
     server.get("/api/health", [](const httplib::Request& req, httplib::Response& res) {
         nlohmann::json healthStatus = {
             {"status", "ok"},
@@ -86,27 +89,11 @@ int main(int argc, char** argv) {
     }
     
     std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
-    auto& newsManager = NewsSourceManager::getInstance();
-    newsManager.loadNewsSourcesFromDatabase();
-    
-    int fetchIntervalMinutes = Config::NEWS_FETCH_INTERVAL_MINUTES;
-    newsManager.startFetchingNews(fetchIntervalMinutes);
-    
-    std::string timeMessage;
-    if (fetchIntervalMinutes >= 60 && fetchIntervalMinutes % 60 == 0) {
-        int hours = fetchIntervalMinutes / 60;
-        timeMessage = std::to_string(hours) + "-hour" + (hours > 1 ? "s" : "");
-    } else {
-        timeMessage = std::to_string(fetchIntervalMinutes) + "-minute" + (fetchIntervalMinutes > 1 ? "s" : "");
-    }
-    
-    std::cout << "News auto-fetch started with " << timeMessage << " interval for all active sources." << std::endl;
+    std::cout << "NOTE: News fetching has been moved to a separate application (news_fetcher_main)" << std::endl;
     
     while (server.isServerRunning()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    
-    NewsSourceManager::getInstance().stopFetchingNews();
     
     std::cout << "Server stopped." << std::endl;
     return 0;
