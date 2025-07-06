@@ -65,12 +65,14 @@ add_library(service
     Service/Src/UserService.cpp
     Service/Src/ExternalServerService.cpp
     Service/Src/CategoryService.cpp
+    Service/Src/ArticleService.cpp
 )
 
 # Controller library
 add_library(controller
     Controller/Src/UserController.cpp
     Controller/Src/AdminController.cpp
+    Controller/Src/ArticleController.cpp
 )
 
 # Include directories - directly reference Common from parent directory
@@ -128,6 +130,8 @@ add_library(dbconnection
     Dao/Src/ArticleDao.cpp
     Dao/Src/CategoryDao.cpp
     Dao/Src/ExternalServerDao.cpp
+    Dao/Src/SavedArticleDao.cpp
+    Dao/Src/LikesDao.cpp
 )
 
 target_include_directories(dbconnection PUBLIC 

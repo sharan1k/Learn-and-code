@@ -22,11 +22,14 @@ add_library(httpclient
 add_library(handlers
     Handlers/Src/AuthenticationHandler.cpp
     Handlers/Src/AdminHandler.cpp
+    Handlers/Src/ArticleHandler.cpp
 )
 
 # Client Application library
 add_library(clientapp
     ClientApplication/Src/ClientApplication.cpp
+    ClientApplication/Src/date_time_helpers.cpp
+    ClientApplication/Src/article_menus.cpp
 )
 
 # Include directories

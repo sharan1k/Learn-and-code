@@ -64,6 +64,7 @@ struct Article {
         return article;
     }
 
+
     bool isValid() const {
         return !title.empty() && !url.empty() && categoryId > 0;
     }

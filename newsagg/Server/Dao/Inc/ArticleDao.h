@@ -19,4 +19,25 @@ public:
     bool deleteArticle(unsigned int articleId);
     bool updateArticle(const Article& article);
     bool articleExists(const std::string& url);
+    
+    std::vector<std::shared_ptr<Article>> getArticlesByDate(const std::string& date, int limit = 10);
+    std::vector<std::shared_ptr<Article>> getArticlesByDateRange(
+        const std::string& startDate, const std::string& endDate, int limit = 10);
+    std::vector<std::shared_ptr<Article>> getArticlesByDateAndCategory(
+        const std::string& date, unsigned int categoryId, int limit = 10);
+    std::vector<std::shared_ptr<Article>> getArticlesByDateRangeAndCategory(
+        const std::string& startDate, const std::string& endDate, 
+        unsigned int categoryId, int limit = 10);
+        
+    std::vector<std::shared_ptr<Article>> searchArticles(
+        const std::string& query, int limit = 10);
+    std::vector<std::shared_ptr<Article>> searchArticlesByDateRange(
+        const std::string& query, const std::string& startDate, const std::string& endDate, 
+        int limit = 10);
+    std::vector<std::shared_ptr<Article>> searchArticlesSortedByLikes(
+        const std::string& query, bool sortByLikes, bool isDescending = true, 
+        int limit = 10);
+    std::vector<std::shared_ptr<Article>> searchArticlesByDateRangeSortedByLikes(
+        const std::string& query, const std::string& startDate, const std::string& endDate,
+        bool sortByLikes, bool isDescending = true, int limit = 10);
 };

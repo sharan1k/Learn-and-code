@@ -35,7 +35,7 @@ std::vector<Article> NewsApi::fetchNews() {
         httplib::SSLClient cli("newsapi.org");
         cli.set_connection_timeout(5);
         cli.enable_server_certificate_verification(false);
-        std::string path = "/v2/top-headlines?country=us&category=sports&apiKey=" + apiKey;
+        std::string path = "/v2/top-headlines?country=us&category=business&apiKey=" + apiKey;
         auto res = cli.Get(path.c_str());
         
         if (res) {

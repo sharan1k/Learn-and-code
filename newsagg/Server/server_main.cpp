@@ -2,6 +2,7 @@
 #include "Dao/Inc/DbConnection.h"
 #include "Controller/Inc/UserController.h"
 #include "Controller/Inc/AdminController.h"
+#include "Controller/Inc/ArticleController.h"
 #include "Config.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -70,6 +71,10 @@ int main(int argc, char** argv) {
     std::cout << "Registering admin controller routes..." << std::endl;
     AdminController::registerRoutes(server);
     std::cout << "Admin controller routes registered." << std::endl;
+    
+    std::cout << "Registering article controller routes..." << std::endl;
+    ArticleController::registerRoutes(server);
+    std::cout << "Article controller routes registered." << std::endl;
     
     server.get("/api/health", [](const httplib::Request& req, httplib::Response& res) {
         nlohmann::json healthStatus = {

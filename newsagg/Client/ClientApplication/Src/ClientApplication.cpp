@@ -11,6 +11,8 @@ ClientApplication::ClientApplication(const std::string& host, int port)
     httpClient = std::make_shared<HttpClient>(host, port);
     authenticationHandler = std::make_unique<AuthenticationHandler>(httpClient);
     adminHandler = std::make_unique<AdminHandler>(httpClient);
+    articleHandler = std::make_unique<ArticleHandler>(httpClient);
+    loadCategories();
 }
 
 void ClientApplication::start() {
@@ -191,17 +193,27 @@ void ClientApplication::waitForKeypress(const std::string& prompt) {
 
 void ClientApplication::showUserMenu() {
     std::cout << "\n=====================================" << std::endl;
-    std::cout << "Welcome to News Aggregator, " << currentUser->userName << "!" << std::endl;
-    std::cout << "1. View News" << std::endl;
-    std::cout << "2. Logout" << std::endl;
+    std::cout << "Welcome to the News Application, " << currentUser->userName << "! Date: " << getCurrentDateString() << std::endl;
+    std::cout << "Time: " << getCurrentTimeString() << std::endl;
+    std::cout << "Please choose the options below" << std::endl;
+    std::cout << "1. Headlines" << std::endl;
+    std::cout << "2. Saved Articles" << std::endl;
+    std::cout << "3. Search" << std::endl;
+    std::cout << "4. Notifications" << std::endl;
+    std::cout << "5. Logout" << std::endl;
     std::cout << "=====================================" << std::endl;
     
-    std::string choice = getInput("Enter your choice (1-2): ");
+    std::string choice = getInput("Enter your choice (1-5): ");
     
     if (choice == "1") {
-        std::cout << "News feature not implemented yet." << std::endl;
-        waitForKeypress();
+        showHeadlinesMenu();
     } else if (choice == "2") {
+        showSavedArticlesMenu();
+    } else if (choice == "3") {
+        handleSearchArticles();
+    } else if (choice == "4") {
+        showNotificationsMenu();
+    } else if (choice == "5") {
         handleLogout();
     } else {
         std::cout << "Invalid choice. Please try again." << std::endl;
