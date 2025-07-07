@@ -1,188 +1,202 @@
 #include "../Inc/AdminHandler.h"
 #include <iostream>
 
-AdminHandler::AdminHandler(std::shared_ptr<HttpClient> client) : client(client) {
+AdminHandler::AdminHandler(std::shared_ptr<HttpClient> httpClient) : client(httpClient) {
 }
 
-void AdminHandler::getExternalServers(std::function<void(bool success, const std::string& message, const std::vector<ExternalServer>& servers)> callback) {
-    client->get("/api/admin/external-servers", [callback](const httplib::Result& result) {
-        if (!result) {
-            callback(false, "Network error", {});
+std::string AdminHandler::extractErrorMessage(
+    const httplib::Result& result, 
+    const std::string& defaultMessage,
+    const std::map<int, std::string>& statusCodes) {
+    
+    std::string errorMessage = defaultMessage;
+    
+    try {
+        auto errorJson = nlohmann::json::parse(result->body);
+        
+        if (errorJson.contains("message") && errorJson["message"].is_string()) {
+            errorMessage = errorJson["message"];
+        }
+        
+        auto it = statusCodes.find(result->status);
+        if (it != statusCodes.end()) {
+            errorMessage = it->second;
+        }
+    } catch (...) {
+        errorMessage = defaultMessage + " (status " + std::to_string(result->status) + ")";
+    }
+    
+    return errorMessage;
+}
+
+nlohmann::json AdminHandler::parseResponse(
+    const httplib::Result& result, 
+    bool& success, 
+    std::string& errorMessage) {
+    
+    if (!result) {
+        success = false;
+        errorMessage = "Network error";
+        return nlohmann::json();
+    }
+    
+    try {
+        nlohmann::json response = nlohmann::json::parse(result->body);
+        if (response["status"] == "success") {
+            success = true;
+            return response;
+        } else {
+            success = false;
+            errorMessage = response.value("message", "Unknown error");
+            return nlohmann::json();
+        }
+    } catch (const std::exception& e) {
+        success = false;
+        errorMessage = "Error parsing server response: " + std::string(e.what());
+        return nlohmann::json();
+    }
+}
+
+void AdminHandler::getExternalServers(ServerListCallback callback) {
+    client->get("/api/admin/external-servers", [this, callback](const httplib::Result& result) {
+        if (result && result->status != 200) {
+            std::string errorMessage = extractErrorMessage(
+                result, 
+                "Failed to retrieve external servers"
+            );
+            callback(false, errorMessage, {});
+            return;
+        }
+
+        bool success = false;
+        std::string errorMessage;
+        auto response = parseResponse(result, success, errorMessage);
+        
+        if (!success) {
+            callback(false, errorMessage, {});
             return;
         }
         
-        if (result->status != 200) {
-            try {
-                auto errorJson = nlohmann::json::parse(result->body);
-                std::string errorMessage = "Failed to retrieve external servers";
-                
-                if (errorJson.contains("message") && errorJson["message"].is_string()) {
-                    errorMessage = errorJson["message"];
-                }
-                
-                callback(false, errorMessage, {});
-            } catch (...) {
-                callback(false, "Server error (status " + std::to_string(result->status) + ")", {});
-            }
-            return;
-        }
-
         try {
-            nlohmann::json response = nlohmann::json::parse(result->body);
-            
-            if (response["status"] != "success") {
-                callback(false, response.value("message", "Unknown error"), {});
-                return;
-            }
-            
             std::vector<ExternalServer> servers;
+            servers.reserve(response["data"].size());
+            
             for (const auto& serverJson : response["data"]) {
                 servers.push_back(ExternalServer::fromJson(serverJson));
             }
             
             callback(true, "Successfully retrieved external servers", servers);
         } catch (const std::exception& e) {
-            callback(false, "Error parsing server response: " + std::string(e.what()), {});
+            callback(false, "Error processing server data: " + std::string(e.what()), {});
         }
     });
 }
 
-void AdminHandler::getExternalServerDetails(int serverId, std::function<void(bool success, const std::string& message, const ExternalServer& server)> callback) {
-    client->get("/api/admin/external-servers/" + std::to_string(serverId), [callback](const httplib::Result& result) {
-        if (!result) {
-            callback(false, "Network error", {});
-            return;
-        }
-        
-        if (result->status != 200) {
-            try {
-                auto errorJson = nlohmann::json::parse(result->body);
-                std::string errorMessage = "Failed to retrieve server details";
-                
-                if (errorJson.contains("message") && errorJson["message"].is_string()) {
-                    errorMessage = errorJson["message"];
-                }
-                
-                if (result->status == 404) {
-                    errorMessage = "Server not found";
-                }
-                
-                callback(false, errorMessage, {});
-            } catch (...) {
-                callback(false, "Server error (status " + std::to_string(result->status) + ")", {});
-            }
+void AdminHandler::getExternalServerDetails(int serverId, ServerDetailsCallback callback) {
+    const std::string endpoint = "/api/admin/external-servers/" + std::to_string(serverId);
+    
+    client->get(endpoint, [this, callback](const httplib::Result& result) {
+        if (result && result->status != 200) {
+            std::map<int, std::string> statusMessages = {
+                {404, "Server not found"}
+            };
+            
+            std::string errorMessage = extractErrorMessage(
+                result, 
+                "Failed to retrieve server details", 
+                statusMessages
+            );
+            
+            callback(false, errorMessage, {});
             return;
         }
 
+        bool success = false;
+        std::string errorMessage;
+        auto response = parseResponse(result, success, errorMessage);
+        
+        if (!success) {
+            callback(false, errorMessage, {});
+            return;
+        }
+        
         try {
-            nlohmann::json response = nlohmann::json::parse(result->body);
-            
-            if (response["status"] != "success") {
-                callback(false, response.value("message", "Unknown error"), {});
-                return;
-            }
-            
             ExternalServer server = ExternalServer::fromJson(response["data"]);
             callback(true, "Successfully retrieved server details", server);
         } catch (const std::exception& e) {
-            callback(false, "Error parsing server response: " + std::string(e.what()), {});
+            callback(false, "Error processing server data: " + std::string(e.what()), {});
         }
     });
 }
 
-void AdminHandler::updateExternalServer(const ExternalServer& server, std::function<void(bool success, const std::string& message)> callback) {
-    nlohmann::json requestBody = server.toJson();
+void AdminHandler::updateExternalServer(const ExternalServer& server, StatusCallback callback) {
+    const std::string endpoint = "/api/admin/external-servers/" + std::to_string(server.apiId);
+    const nlohmann::json requestBody = server.toJson();
     
-    client->put("/api/admin/external-servers/" + std::to_string(server.apiId), 
+    client->put(endpoint, 
                 requestBody.dump(),
-                [callback](const httplib::Result& result) {
-        if (!result) {
-            callback(false, "Network error");
+                [this, callback](const httplib::Result& result) {
+        if (result && result->status != 200) {
+            std::map<int, std::string> statusMessages = {
+                {404, "Server not found"},
+                {400, "Invalid server data"}
+            };
+            
+            std::string errorMessage = extractErrorMessage(
+                result, 
+                "Failed to update server", 
+                statusMessages
+            );
+            
+            callback(false, errorMessage);
+            return;
+        }
+
+        bool success = false;
+        std::string errorMessage;
+        auto response = parseResponse(result, success, errorMessage);
+        
+        if (!success) {
+            callback(false, errorMessage);
             return;
         }
         
-        if (result->status != 200) {
-            try {
-                auto errorJson = nlohmann::json::parse(result->body);
-                std::string errorMessage = "Failed to update server";
-                
-                if (errorJson.contains("message") && errorJson["message"].is_string()) {
-                    errorMessage = errorJson["message"];
-                }
-                
-                if (result->status == 404) {
-                    errorMessage = "Server not found";
-                } else if (result->status == 400) {
-                    errorMessage = "Invalid server data";
-                }
-                
-                callback(false, errorMessage);
-            } catch (...) {
-                callback(false, "Server error (status " + std::to_string(result->status) + ")");
-            }
-            return;
-        }
-
-        try {
-            nlohmann::json response = nlohmann::json::parse(result->body);
-            
-            if (response["status"] != "success") {
-                callback(false, response.value("message", "Unknown error"));
-                return;
-            }
-            
-            callback(true, "Successfully updated server");
-        } catch (const std::exception& e) {
-            callback(false, "Error parsing server response: " + std::string(e.what()));
-        }
+        callback(true, "Successfully updated server");
     });
 }
 
-void AdminHandler::addCategory(const std::string& categoryName, std::function<void(bool success, const std::string& message)> callback) {
+void AdminHandler::addCategory(const std::string& categoryName, StatusCallback callback) {
     nlohmann::json requestBody;
     requestBody["categoryName"] = categoryName;
     
     client->post("/api/admin/categories", 
                  requestBody.dump(),
-                 [callback, categoryName](const httplib::Result& result) {
-        if (!result) {
-            callback(false, "Network error");
-            return;
-        }
-        
-        if (result->status != 201) {
-            try {
-                auto errorJson = nlohmann::json::parse(result->body);
-                std::string errorMessage = "Failed to create category";
-                
-                if (errorJson.contains("message") && errorJson["message"].is_string()) {
-                    errorMessage = errorJson["message"];
-                }
-                
-                if (result->status == 409) {
-                    errorMessage = "Category '" + categoryName + "' already exists";
-                } else if (result->status == 400) {
-                    errorMessage = "Invalid category name";
-                }
-                
-                callback(false, errorMessage);
-            } catch (...) {
-                callback(false, "Server error (status " + std::to_string(result->status) + ")");
-            }
+                 [this, callback, categoryName](const httplib::Result& result) {
+        if (result && result->status != 201) {
+            std::map<int, std::string> statusMessages = {
+                {409, "Category '" + categoryName + "' already exists"},
+                {400, "Invalid category name"}
+            };
+            
+            std::string errorMessage = extractErrorMessage(
+                result, 
+                "Failed to create category", 
+                statusMessages
+            );
+            
+            callback(false, errorMessage);
             return;
         }
 
-        try {
-            nlohmann::json response = nlohmann::json::parse(result->body);
-            
-            if (response["status"] != "success") {
-                callback(false, response.value("message", "Unknown error"));
-                return;
-            }
-            
-            callback(true, "Category '" + categoryName + "' added successfully");
-        } catch (const std::exception& e) {
-            callback(false, "Error parsing server response: " + std::string(e.what()));
+        bool success = false;
+        std::string errorMessage;
+        auto response = parseResponse(result, success, errorMessage);
+        
+        if (!success) {
+            callback(false, errorMessage);
+            return;
         }
+        
+        callback(true, "Category '" + categoryName + "' added successfully");
     });
 }

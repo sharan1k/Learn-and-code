@@ -12,18 +12,34 @@
 
 class AdminHandler {
 public:
-    AdminHandler(std::shared_ptr<HttpClient> client);
+    using ServerListCallback = std::function<void(bool success, const std::string& message, const std::vector<ExternalServer>& servers)>;
     
-    void getExternalServers(std::function<void(bool success, const std::string& message, const std::vector<ExternalServer>& servers)> callback);
+    using ServerDetailsCallback = std::function<void(bool success, const std::string& message, const ExternalServer& server)>;
     
-    void getExternalServerDetails(int serverId, std::function<void(bool success, const std::string& message, const ExternalServer& server)> callback);
+    using StatusCallback = std::function<void(bool success, const std::string& message)>;
     
-    void updateExternalServer(const ExternalServer& server, std::function<void(bool success, const std::string& message)> callback);
+    explicit AdminHandler(std::shared_ptr<HttpClient> httpClient);
     
-    void addCategory(const std::string& categoryName, std::function<void(bool success, const std::string& message)> callback);
+    void getExternalServers(ServerListCallback callback);
+    
+    void getExternalServerDetails(int serverId, ServerDetailsCallback callback);
+    
+    void updateExternalServer(const ExternalServer& server, StatusCallback callback);
+    
+    void addCategory(const std::string& categoryName, StatusCallback callback);
 
 private:
     std::shared_ptr<HttpClient> client;
+    
+    std::string extractErrorMessage(
+        const httplib::Result& result,
+        const std::string& defaultMessage,
+        const std::map<int, std::string>& statusCodes = {});
+    
+    nlohmann::json parseResponse(
+        const httplib::Result& result,
+        bool& success,
+        std::string& errorMessage);
 };
 
 #endif // ADMIN_HANDLER_H
