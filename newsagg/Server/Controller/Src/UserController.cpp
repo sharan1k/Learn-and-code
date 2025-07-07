@@ -6,32 +6,32 @@ UserService& UserController::getUserService() {
 }
 
 void UserController::sendSuccessResponse(httplib::Response& response, const nlohmann::json& data, int status, const std::string& message) {
-    nlohmann::json response = {{"status", "success"}};
+    nlohmann::json jsonResponse = {{"status", "success"}};
     
     if (!data.is_null()) {
-        response["data"] = data;
+        jsonResponse["data"] = data;
     }
     
     if (!message.empty()) {
-        response["message"] = message;
+        jsonResponse["message"] = message;
     }
     
     if (data.contains("user")) {
-        response["user"] = data["user"];
+        jsonResponse["user"] = data["user"];
     }
     
     response.status = status;
-    response.set_content(response.dump(), "application/json");
+    response.set_content(jsonResponse.dump(), "application/json");
 }
 
 void UserController::sendErrorResponse(httplib::Response& response, const std::string& message, int status) {
-    nlohmann::json response = {
+    nlohmann::json jsonResponse = {
         {"status", "error"},
         {"message", message}
     };
     
     response.status = status;
-    response.set_content(response.dump(), "application/json");
+    response.set_content(jsonResponse.dump(), "application/json");
 }
 
 void UserController::registerRoutes(HttpServer& server) {

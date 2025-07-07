@@ -55,13 +55,13 @@ std::vector<Article> NewsApi::fetchNews() {
             Logger::info("Fetching news for category: " + displayCategory);
             
             std::string path = "/v2/top-headlines?country=us&category=" + apiCategory + "&apiKey=" + apiKey;
-            auto response = client.Get(path.c_str());
+            auto httpResponse = client.Get(path.c_str());
             
-            if (response && response->status == 200) {
-                nlohmann::json response = nlohmann::json::parse(response->body);
+            if (httpResponse && httpResponse->status == 200) {
+                nlohmann::json jsonResponse = nlohmann::json::parse(httpResponse->body);
                 
-                if (response.contains("articles") && response["articles"].is_array()) {
-                    for (const auto& item : response["articles"]) {
+                if (jsonResponse.contains("articles") && jsonResponse["articles"].is_array()) {
+                    for (const auto& item : jsonResponse["articles"]) {
                         Article article;
                         
                         if (item.contains("title")) article.title = item["title"].get<std::string>();
@@ -98,11 +98,11 @@ std::vector<Article> NewsApi::fetchNews() {
                 }
             } else {
                 Logger::error("Error fetching news for category " + displayCategory + " from NewsAPI");
-                if (response) {
-                    Logger::error("Status: " + std::to_string(response->status));
-                    if (response->body.find("message") != std::string::npos) {
+                if (httpResponse) {
+                    Logger::error("Status: " + std::to_string(httpResponse->status));
+                    if (httpResponse->body.find("message") != std::string::npos) {
                         try {
-                            nlohmann::json errorJson = nlohmann::json::parse(response->body);
+                            nlohmann::json errorJson = nlohmann::json::parse(httpResponse->body);
                             if (errorJson.contains("message")) {
                                 Logger::error("Error message: " + errorJson["message"].get<std::string>());
                             }
@@ -111,8 +111,8 @@ std::vector<Article> NewsApi::fetchNews() {
                         }
                     }
                 } else {
-                    auto err = response.error();
-                    Logger::error("Error: " + httplib::to_string(err));
+                    auto error = httpResponse.error();
+                    Logger::error("Error: " + httplib::to_string(error));
                 }
             }
             

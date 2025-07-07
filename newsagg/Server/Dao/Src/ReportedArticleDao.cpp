@@ -24,7 +24,7 @@ bool ReportedArticleDao::reportArticle(unsigned int userId, unsigned int article
         int result = stmt->executeUpdate();
         Logger::info("Article " + std::to_string(articleId) + " reported by user " + std::to_string(userId));
         return result > 0;
-    } catch (sql::SQLException &exceptionxception) {
+    } catch (sql::SQLException &exception) {
         Logger::error("SQLException in ReportedArticleDao::reportArticle: " + std::string(exception.what()));
         return false;
     } catch (std::exception &exception) {
@@ -46,7 +46,7 @@ bool ReportedArticleDao::markReportAsSeen(unsigned int userId, unsigned int arti
         
         int result = stmt->executeUpdate();
         return result > 0;
-    } catch (sql::SQLException &exceptionxception) {
+    } catch (sql::SQLException &exception) {
         Logger::error("SQLException in ReportedArticleDao::markReportAsSeen: " + std::string(exception.what()));
         return false;
     } catch (std::exception &exception) {

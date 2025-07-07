@@ -45,13 +45,13 @@ std::vector<Article> TheNewsApi::fetchNews() {
         std::string path = "/v1/news/top?api_token=" + apiKey + "&locale=us&limit=3";
         Logger::info("Fetching news from TheNewsApi");
         
-        auto response = client.Get(path.c_str());
+        auto httpResponse = client.Get(path.c_str());
         
-        if (response && response->status == 200) {
-            nlohmann::json response = nlohmann::json::parse(response->body);
+        if (httpResponse && httpResponse->status == 200) {
+            nlohmann::json jsonResponse = nlohmann::json::parse(httpResponse->body);
             
-            if (response.contains("data") && response["data"].is_array()) {
-                for (const auto& item : response["data"]) {
+            if (jsonResponse.contains("data") && jsonResponse["data"].is_array()) {
+                for (const auto& item : jsonResponse["data"]) {
                     Article article;
                     if (item.contains("title")) article.title = item["title"].get<std::string>();
                     
