@@ -9,8 +9,10 @@
 #include <iomanip>
 #include <sstream>
 #include <chrono>
+#include <thread> // For std::this_thread
 #include <ctime>
 #include <regex>
+#include <map>
 
 NewsApi::NewsApi() 
     : apiUrl("https://newsapi.org/v2/top-headlines"), 
@@ -31,16 +33,33 @@ std::vector<Article> NewsApi::fetchNews() {
         return articles;
     }
     
+    // Define all available categories
+    std::vector<std::pair<std::string, std::string>> categories = {
+        {"general", "General"},
+        {"business", "Business"},
+        {"entertainment", "Entertainment"},
+        {"health", "Health"},
+        {"science", "Science"},
+        {"sports", "Sports"},
+        {"technology", "Technology"}
+    };
+    
     try {
         updateLastAccessed();
         httplib::SSLClient cli("newsapi.org");
         cli.set_connection_timeout(5);
         cli.enable_server_certificate_verification(false);
-        std::string path = "/v2/top-headlines?country=us&category=technology&apiKey=" + apiKey;
-        auto res = cli.Get(path.c_str());
         
-        if (res) {
-            if (res->status == 200) {
+        // Iterate through each category
+        for (const auto& category : categories) {
+            std::string apiCategory = category.first;
+            std::string displayCategory = category.second;
+            
+            std::cout << "Fetching news for category: " << displayCategory << std::endl;
+            std::string path = "/v2/top-headlines?country=us&category=" + apiCategory + "&apiKey=" + apiKey;
+            auto res = cli.Get(path.c_str());
+            
+            if (res && res->status == 200) {
                 nlohmann::json response = nlohmann::json::parse(res->body);
                 
                 if (response.contains("articles") && response["articles"].is_array()) {
@@ -63,8 +82,8 @@ std::vector<Article> NewsApi::fetchNews() {
                         
                         if (item.contains("url")) article.url = item["url"].get<std::string>();
             
-                        std::string categoryName = "Business";
-                        article.categoryId = categoryDao->findOrCreateCategory(categoryName);
+                        // Use the current category
+                        article.categoryId = categoryDao->findOrCreateCategory(apiCategory);
                         
                         if (item.contains("publishedAt")) {
                             std::string isoDateTime = item["publishedAt"].get<std::string>();
@@ -81,17 +100,26 @@ std::vector<Article> NewsApi::fetchNews() {
                     }
                 }
             } else {
-                std::cerr << "Error fetching news from NewsAPI. Status: " << res->status << std::endl;
-                if (res->body.find("message") != std::string::npos) {
-                    nlohmann::json errorJson = nlohmann::json::parse(res->body);
-                    if (errorJson.contains("message")) {
-                        std::cerr << "Error message: " << errorJson["message"].get<std::string>() << std::endl;
+                std::cerr << "Error fetching news for category " << displayCategory << " from NewsAPI.";
+                if (res) {
+                    std::cerr << " Status: " << res->status << std::endl;
+                    if (res->body.find("message") != std::string::npos) {
+                        try {
+                            nlohmann::json errorJson = nlohmann::json::parse(res->body);
+                            if (errorJson.contains("message")) {
+                                std::cerr << "Error message: " << errorJson["message"].get<std::string>() << std::endl;
+                            }
+                        } catch (const std::exception& e) {
+                            std::cerr << "Failed to parse error message: " << e.what() << std::endl;
+                        }
                     }
+                } else {
+                    auto err = res.error();
+                    std::cerr << " Error: " << httplib::to_string(err) << std::endl;
                 }
             }
-        } else {
-            auto err = res.error();
-            std::cerr << "Error fetching news from NewsAPI: " << httplib::to_string(err) << std::endl;
+            
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     } catch (const std::exception& e) {
         std::cerr << "Exception in fetchNews for NewsAPI: " << e.what() << std::endl;
@@ -132,6 +160,9 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
     bool allSuccessful = true;
     NotificationService notificationService;
     
+    // Map to store user IDs to their notification article IDs
+    std::map<unsigned int, std::vector<unsigned int>> userNotifications;
+    
     for (const auto& article : articles) {
         if (articleDao->articleExists(article.url)) {
             continue;
@@ -140,11 +171,38 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
         unsigned int articleId = 0;
         if (articleDao->createArticle(article, &articleId)) {
             if (articleId > 0) {
-                notificationService.processArticleForNotifications(articleId);
+                // Instead of sending immediate notifications, collect the users who should be notified
+                std::vector<unsigned int> interestedUsers = notificationService.getUsersInterestedInArticle(articleId);
+                
+                // Add the article to each user's notification list
+                for (unsigned int userId : interestedUsers) {
+                    userNotifications[userId].push_back(articleId);
+                    // Create the notification record in the database
+                    notificationService.createNotification(userId, articleId);
+                }
             }
         } else {
             std::cerr << "Failed to store article from NewsAPI: " << article.title << std::endl;
             allSuccessful = false;
+        }
+    }
+    
+    // Send a single email to each user with all their notifications
+    for (const auto& [userId, articleIds] : userNotifications) {
+        if (!articleIds.empty()) {
+            std::vector<std::shared_ptr<Notification>> notifications;
+            
+            // Create notification objects
+            for (unsigned int articleId : articleIds) {
+                auto notification = std::make_shared<Notification>();
+                notification->userId = userId;
+                notification->articleId = articleId;
+                notification->seenStatus = false;
+                notifications.push_back(notification);
+            }
+            
+            // Send a single email with all notifications for this user
+            notificationService.sendEmailNotification(userId, notifications);
         }
     }
     

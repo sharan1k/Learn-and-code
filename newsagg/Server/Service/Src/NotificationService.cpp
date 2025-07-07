@@ -4,6 +4,7 @@
 #include <memory>
 #include <algorithm>
 #include <cctype>
+#include <set>
 
 std::string toLowerCase(const std::string& str) {
     std::string result = str;
@@ -203,4 +204,52 @@ bool NotificationService::sendEmailNotification(unsigned int userId, const std::
         std::cerr << "Error in sendEmailNotification: " << e.what() << std::endl;
         return false;
     }
+}
+
+std::vector<unsigned int> NotificationService::getUsersInterestedInArticle(unsigned int articleId) {
+    std::vector<unsigned int> interestedUsers;
+    std::set<unsigned int> uniqueUsers; // To avoid duplicate users
+    
+    try {
+        auto article = articleDao.findById(articleId);
+        
+        if (!article) {
+            std::cerr << "Article not found: " << articleId << std::endl;
+            return interestedUsers;
+        }
+        
+        // Get users interested in this category
+        auto categorySettings = settingDao.getByCategoryId(article->categoryId);
+        for (const auto& setting : categorySettings) {
+            uniqueUsers.insert(setting->userId);
+        }
+        
+        // Get users interested in keywords from this article
+        auto allKeywords = keywordDao.getAll();
+        std::string articleTitleLower = toLowerCase(article->title);
+        std::string articleDescriptionLower = toLowerCase(article->description);
+        
+        for (const auto& entry : allKeywords) {
+            unsigned int userId = entry.first;
+            std::vector<std::string> userKeywords = entry.second;
+            
+            for (const std::string& keyword : userKeywords) {
+                std::string keywordLower = toLowerCase(keyword);
+                
+                if (articleTitleLower.find(keywordLower) != std::string::npos ||
+                    articleDescriptionLower.find(keywordLower) != std::string::npos) {
+                    uniqueUsers.insert(userId);
+                    break;
+                }
+            }
+        }
+        
+        // Convert set to vector
+        interestedUsers.assign(uniqueUsers.begin(), uniqueUsers.end());
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error in getUsersInterestedInArticle: " << e.what() << std::endl;
+    }
+    
+    return interestedUsers;
 }
