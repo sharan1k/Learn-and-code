@@ -2,6 +2,7 @@
 
 #include "INewsSource.h"
 #include "../../Dao/Inc/ExternalServerDao.h"
+#include "../../Service/Inc/NotificationService.h"
 #include <memory>
 #include <vector>
 #include <string>

@@ -4,6 +4,8 @@ project(NewsAggServer VERSION 1.0)
 # Find required packages
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(CURL REQUIRED)
+find_package(CURL REQUIRED)
 
 # Find MySQL Connector/C++
 find_path(MYSQLCPPCONN_INCLUDE_DIR NAMES cppconn/driver.h
@@ -66,6 +68,7 @@ add_library(service
     Service/Src/ExternalServerService.cpp
     Service/Src/CategoryService.cpp
     Service/Src/ArticleService.cpp
+    Service/Src/NotificationService.cpp
 )
 
 # Controller library
@@ -73,6 +76,7 @@ add_library(controller
     Controller/Src/UserController.cpp
     Controller/Src/AdminController.cpp
     Controller/Src/ArticleController.cpp
+    Controller/Src/NotificationController.cpp
 )
 
 # Include directories - directly reference Common from parent directory
@@ -132,6 +136,27 @@ add_library(dbconnection
     Dao/Src/ExternalServerDao.cpp
     Dao/Src/SavedArticleDao.cpp
     Dao/Src/LikesDao.cpp
+    Dao/Src/NotificationDao.cpp
+    Dao/Src/NotificationSettingDao.cpp
+    Dao/Src/KeywordDao.cpp
+)
+
+# Utils library
+add_library(utils
+    Utils/Src/EmailService.cpp
+    Utils/Src/Logger.cpp
+)
+
+target_include_directories(utils PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
+    ${CURL_INCLUDE_DIRS}
+    ${NLOHMANN_JSON_INCLUDE_DIR}
+)
+
+target_link_libraries(utils PUBLIC 
+    ${CURL_LIBRARIES}
+    -lcurl
 )
 
 target_include_directories(dbconnection PUBLIC 
@@ -162,6 +187,8 @@ target_include_directories(newssources PUBLIC
 
 target_link_libraries(newssources
     dbconnection
+    utils
+    ${CURL_LIBRARIES}
 )
 
 # Update target include directories for newsagg_server to include Config
@@ -177,10 +204,12 @@ target_link_libraries(newsagg_server
     service
     newssources
     dbconnection
+    utils
     Threads::Threads
     ${MYSQLCPPCONN_LIBRARY}
     OpenSSL::SSL
     OpenSSL::Crypto
+    ${CURL_LIBRARIES}
 )
 
 # Link libraries for newsagg_fetcher
@@ -188,15 +217,38 @@ target_link_libraries(newsagg_fetcher
     PRIVATE
     newssources
     dbconnection
+    service
+    utils
     Threads::Threads
     ${MYSQLCPPCONN_LIBRARY}
     OpenSSL::SSL
     OpenSSL::Crypto
+    ${CURL_LIBRARIES}
+    -lcurl
 )
 
 # Add include directories for newsagg_fetcher
 target_include_directories(newsagg_fetcher PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Config/Inc
+    ${CURL_INCLUDE_DIRS}
+)
+
+# Add include directories for the newsagg_fetcher specifically to find the CURL headers
+target_include_directories(newsagg_fetcher PUBLIC
+    /usr/include
+    /usr/local/include
+)
+
+# Make sure CURL headers are included for newssources which may use notification services
+target_include_directories(newssources PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/NewsSources/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dao/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Service/Inc
+    ${MYSQLCPPCONN_INCLUDE_DIR}
+    ${NLOHMANN_JSON_INCLUDE_DIR}
+    ${CURL_INCLUDE_DIRS}
 )
 
 # Install rules

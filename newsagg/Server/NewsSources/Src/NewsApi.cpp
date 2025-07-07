@@ -2,6 +2,7 @@
 #include "../../Dao/Inc/ArticleDao.h"
 #include "../../Dao/Inc/CategoryDao.h"
 #include "../../Dao/Inc/ExternalServerDao.h"
+#include "../../Service/Inc/NotificationService.h"
 #include "../../../Common/Inc/httplib.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -35,7 +36,7 @@ std::vector<Article> NewsApi::fetchNews() {
         httplib::SSLClient cli("newsapi.org");
         cli.set_connection_timeout(5);
         cli.enable_server_certificate_verification(false);
-        std::string path = "/v2/top-headlines?country=us&category=business&apiKey=" + apiKey;
+        std::string path = "/v2/top-headlines?country=us&category=technology&apiKey=" + apiKey;
         auto res = cli.Get(path.c_str());
         
         if (res) {
@@ -129,13 +130,19 @@ void NewsApi::setActive(bool isActive) {
 
 bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
     bool allSuccessful = true;
+    NotificationService notificationService;
     
     for (const auto& article : articles) {
         if (articleDao->articleExists(article.url)) {
             continue;
         }
         
-        if (!articleDao->createArticle(article)) {
+        unsigned int articleId = 0;
+        if (articleDao->createArticle(article, &articleId)) {
+            if (articleId > 0) {
+                notificationService.processArticleForNotifications(articleId);
+            }
+        } else {
             std::cerr << "Failed to store article from NewsAPI: " << article.title << std::endl;
             allSuccessful = false;
         }

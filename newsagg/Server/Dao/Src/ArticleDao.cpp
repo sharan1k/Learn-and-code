@@ -12,7 +12,7 @@ ArticleDao::ArticleDao() {
 ArticleDao::~ArticleDao() {
 }
 
-bool ArticleDao::createArticle(const Article& article) {
+bool ArticleDao::createArticle(const Article& article, unsigned int* outArticleId) {
     try {
         auto dbInstance = DbConnection::getInstance();
         auto conn = dbInstance->getConnection();
@@ -29,6 +29,16 @@ bool ArticleDao::createArticle(const Article& article) {
         pstmt->setString(6, article.publishedAt);
         
         int rowsAffected = pstmt->executeUpdate();
+        
+        if (outArticleId != nullptr && rowsAffected > 0) {
+            std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
+            
+            if (res->next()) {
+                *outArticleId = res->getUInt(1);
+            }
+        }
+        
         return rowsAffected > 0;
     } catch (sql::SQLException &e) {
         std::cerr << "SQLException in createArticle: " << e.what() << std::endl;

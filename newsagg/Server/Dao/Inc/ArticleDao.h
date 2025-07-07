@@ -11,7 +11,7 @@ public:
     ArticleDao();
     ~ArticleDao();
     
-    bool createArticle(const Article& article);
+    bool createArticle(const Article& article, unsigned int* outArticleId = nullptr);
     std::shared_ptr<Article> findById(unsigned int articleId);
     std::vector<std::shared_ptr<Article>> findByCategory(unsigned int categoryId);
     std::vector<std::shared_ptr<Article>> getLatestArticles(int limit = 10);

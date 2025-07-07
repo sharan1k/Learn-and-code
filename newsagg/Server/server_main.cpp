@@ -3,6 +3,8 @@
 #include "Controller/Inc/UserController.h"
 #include "Controller/Inc/AdminController.h"
 #include "Controller/Inc/ArticleController.h"
+#include "Controller/Inc/NotificationController.h"
+#include "Utils/Inc/EmailService.h"
 #include "Config.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -76,6 +78,12 @@ int main(int argc, char** argv) {
     ArticleController::registerRoutes(server);
     std::cout << "Article controller routes registered." << std::endl;
     
+    std::cout << "Registering notification controller routes..." << std::endl;
+    NotificationController::registerRoutes(server);
+    std::cout << "Notification controller routes registered." << std::endl;
+    
+    EmailService::initializeEmailService();
+    
     server.get("/api/health", [](const httplib::Request& req, httplib::Response& res) {
         nlohmann::json healthStatus = {
             {"status", "ok"},
@@ -94,7 +102,6 @@ int main(int argc, char** argv) {
     }
     
     std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
-    std::cout << "NOTE: News fetching has been moved to a separate application (news_fetcher_main)" << std::endl;
     
     while (server.isServerRunning()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));

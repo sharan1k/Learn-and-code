@@ -7,6 +7,7 @@
 
 class ArticleDao;
 class CategoryDao;
+class NotificationService;
 
 class TheNewsApi : public INewsSource {
 public:

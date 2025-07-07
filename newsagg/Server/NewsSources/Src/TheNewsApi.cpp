@@ -2,6 +2,7 @@
 #include "../../Dao/Inc/ArticleDao.h"
 #include "../../Dao/Inc/CategoryDao.h"
 #include "../../Dao/Inc/ExternalServerDao.h"
+#include "../../Service/Inc/NotificationService.h"
 #include "../../../Common/Inc/httplib.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -132,6 +133,7 @@ bool TheNewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
     bool allSuccessful = true;
     int newArticles = 0;
     int existingArticles = 0;
+    NotificationService notificationService;
     
     std::cout << "TheNewsAPI processing " << articles.size() << " articles..." << std::endl;
     
@@ -142,8 +144,12 @@ bool TheNewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
                 continue;
             }
             
-            if (articleDao->createArticle(article)) {
+            unsigned int articleId = 0;
+            if (articleDao->createArticle(article, &articleId)) {
                 newArticles++;
+                if (articleId > 0) {
+                    notificationService.processArticleForNotifications(articleId);
+                }
             } else {
                 std::cerr << "Failed to store article from TheNewsAPI: " << article.title << std::endl;
                 allSuccessful = false;
