@@ -4,6 +4,7 @@
 #include "../../Handlers/Inc/AuthenticationHandler.h"
 #include "../../Handlers/Inc/AdminHandler.h"
 #include "../../Handlers/Inc/ArticleHandler.h"
+#include "../../Handlers/Inc/NotificationHandler.h"
 #include "../../Http/Inc/HttpClient.h"
 #include <memory>
 #include <string>
@@ -51,6 +52,11 @@ private:
     void showSavedArticlesMenu();
     void handleSearchArticles();
     void showNotificationsMenu();
+    void viewNotifications();
+    void configureNotifications();
+    void showNotificationCategoryMenu();
+    void configureKeywords();
+    void manageKeywords();
     
     std::string getCurrentDateString();
     std::string getCurrentTimeString();
@@ -63,6 +69,7 @@ private:
     std::unique_ptr<AuthenticationHandler> authenticationHandler;
     std::unique_ptr<AdminHandler> adminHandler;
     std::unique_ptr<ArticleHandler> articleHandler;
+    std::unique_ptr<NotificationHandler> notificationHandler;
     User* currentUser;
     bool isLoggedIn;
     bool isRunning;

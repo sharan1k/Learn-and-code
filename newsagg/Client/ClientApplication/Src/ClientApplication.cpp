@@ -12,6 +12,7 @@ ClientApplication::ClientApplication(const std::string& host, int port)
     authenticationHandler = std::make_unique<AuthenticationHandler>(httpClient);
     adminHandler = std::make_unique<AdminHandler>(httpClient);
     articleHandler = std::make_unique<ArticleHandler>(httpClient);
+    notificationHandler = std::make_unique<NotificationHandler>(httpClient);
     loadCategories();
 }
 

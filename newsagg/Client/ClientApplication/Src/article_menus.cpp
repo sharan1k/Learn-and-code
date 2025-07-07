@@ -417,13 +417,6 @@ void ClientApplication::handleSearchArticles() {
     waitForKeypress();
 }
 
-void ClientApplication::showNotificationsMenu() {
-    std::cout << "\n=====================================" << std::endl;
-    std::cout << "Notifications" << std::endl;
-    std::cout << "This feature is coming soon!" << std::endl;
-    waitForKeypress();
-}
-
 void ClientApplication::likeArticle(unsigned int articleId) {
     std::cout << "Liking article..." << std::endl;
     
