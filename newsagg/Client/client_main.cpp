@@ -21,11 +21,15 @@ int main(int argc, char** argv) {
     }
     
     std::cout << "Connecting to server at " << host << ":" << port << std::endl;
-      try {
+    
+    try {
         ClientApplication app(host, port);
         app.start();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Unknown error occurred. Please check your network connection." << std::endl;
         return 1;
     }
     

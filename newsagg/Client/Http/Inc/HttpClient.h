@@ -28,6 +28,10 @@ public:
     std::string urlEncode(const std::string& value);
 
 private:
+    template<typename Func>
+    bool performRequest(const std::string& method, const std::string& path, Func requestFunc, 
+                      std::function<void(const httplib::Result&)> callback);
+
     std::string host;
     int port;
     httplib::Client client;

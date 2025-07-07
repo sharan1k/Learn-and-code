@@ -56,14 +56,16 @@ private:
     void configureNotifications();
     void showNotificationCategoryMenu();
     void configureKeywords();
-    void manageKeywords();
     
+    bool waitForRequestCompletion(bool& requestComplete);
+    void displayMenuHeader(const std::string& title);
     std::string getCurrentDateString();
     std::string getCurrentTimeString();
     bool validateDateFormat(const std::string& date);
     
     std::string getCategoryNameById(unsigned int categoryId);
     void loadCategories();
+    void displayUnseenNotifications(const std::vector<Notification*>& notifications);
     
     std::shared_ptr<HttpClient> httpClient;
     std::unique_ptr<AuthenticationHandler> authenticationHandler;

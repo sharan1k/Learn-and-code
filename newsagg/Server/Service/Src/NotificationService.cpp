@@ -208,7 +208,7 @@ bool NotificationService::sendEmailNotification(unsigned int userId, const std::
 
 std::vector<unsigned int> NotificationService::getUsersInterestedInArticle(unsigned int articleId) {
     std::vector<unsigned int> interestedUsers;
-    std::set<unsigned int> uniqueUsers; // To avoid duplicate users
+    std::set<unsigned int> uniqueUsers; 
     
     try {
         auto article = articleDao.findById(articleId);
@@ -218,13 +218,11 @@ std::vector<unsigned int> NotificationService::getUsersInterestedInArticle(unsig
             return interestedUsers;
         }
         
-        // Get users interested in this category
         auto categorySettings = settingDao.getByCategoryId(article->categoryId);
         for (const auto& setting : categorySettings) {
             uniqueUsers.insert(setting->userId);
         }
         
-        // Get users interested in keywords from this article
         auto allKeywords = keywordDao.getAll();
         std::string articleTitleLower = toLowerCase(article->title);
         std::string articleDescriptionLower = toLowerCase(article->description);
@@ -244,7 +242,6 @@ std::vector<unsigned int> NotificationService::getUsersInterestedInArticle(unsig
             }
         }
         
-        // Convert set to vector
         interestedUsers.assign(uniqueUsers.begin(), uniqueUsers.end());
         
     } catch (const std::exception& e) {

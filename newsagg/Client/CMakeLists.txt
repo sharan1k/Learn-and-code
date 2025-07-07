@@ -30,6 +30,7 @@ add_library(handlers
 add_library(clientapp
     ClientApplication/Src/ClientApplication.cpp
     ClientApplication/Src/date_time_helpers.cpp
+    ClientApplication/Src/ui_helpers.cpp
     ClientApplication/Src/article_menus.cpp
     ClientApplication/Src/notification_menus.cpp
 )

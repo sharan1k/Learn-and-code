@@ -1,4 +1,5 @@
 #include "../Inc/ClientApplication.h"
+#include "../../Config.h"
 #include <iostream>
 #include <iomanip>
 #include <thread>
@@ -6,10 +7,8 @@
 #include <algorithm>
 
 void ClientApplication::showNotificationsMenu() {
-    std::cout << "\n=====================================" << std::endl;
-    std::cout << "Welcome to News Application, " << currentUser->userName << "! Date: " << getCurrentDateString() << std::endl;
-    std::cout << "Time: " << getCurrentTimeString() << std::endl;
-    std::cout << "N O T I F I C A T I O N S" << std::endl;
+    displayMenuHeader("N O T I F I C A T I O N S");
+    
     std::cout << "1. View Notifications" << std::endl;
     std::cout << "2. Configure Notifications" << std::endl;
     std::cout << "3. Back" << std::endl;
@@ -34,8 +33,7 @@ void ClientApplication::showNotificationsMenu() {
 }
 
 void ClientApplication::viewNotifications() {
-    std::cout << "\n=====================================" << std::endl;
-    std::cout << "V I E W  N O T I F I C A T I O N S" << std::endl;
+    displayMenuHeader("V I E W  N O T I F I C A T I O N S");
     std::cout << "=====================================" << std::endl;
     
     bool requestComplete = false;
@@ -45,13 +43,11 @@ void ClientApplication::viewNotifications() {
         bool success, const std::string& message, const std::vector<Notification*>& fetchedNotifications) {
         
         if (success) {
-            // Store all notifications but only process unseen ones
             notifications = fetchedNotifications;
             
-            // Count unseen notifications
             int unseenCount = 0;
             for (const auto& notification : notifications) {
-                if (notification->seenStatus == "unseen") {
+                if (notification->seenStatus == ClientConfig::STATUS_UNSEEN) {
                     unseenCount++;
                 }
             }
@@ -60,29 +56,7 @@ void ClientApplication::viewNotifications() {
                 std::cout << "You have no new notifications." << std::endl;
             } else {
                 std::cout << "You have " << unseenCount << " new notification(s):" << std::endl;
-                
-                int count = 1;
-                for (const auto& notification : notifications) {
-                    // Only display unseen notifications
-                    if (notification->seenStatus == "unseen") {
-                        std::cout << count << ". Article ID: " << notification->articleId << std::endl;
-                        count++;
-                        
-                        articleHandler->getArticleDetails(notification->articleId, [this](
-                            bool success, const std::string& message, const Article* article) { 
-                            
-                            if (success && article) {
-                                std::cout << "   Title: " << article->title << std::endl;
-                                std::cout << "   Published: " << article->publishedAt << std::endl; 
-                                std::cout << "   Category: " << getCategoryNameById(article->categoryId) << std::endl;
-                                std::cout << "   -------------------" << std::endl;
-                            } else {
-                                std::cout << "   [Could not fetch article details: " << message << "]" << std::endl;
-                                std::cout << "   -------------------" << std::endl;
-                            }
-                        });
-                    }
-                }
+                displayUnseenNotifications(notifications);
                 
                 notificationHandler->markNotificationsAsSeen(currentUser->userId, [](bool success, const std::string& message) {
                     if (success) {
@@ -99,17 +73,15 @@ void ClientApplication::viewNotifications() {
         requestComplete = true;
     });
     
-    int timeout = 0;
-    while (!requestComplete && timeout < 50) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        timeout++;
+    if (!waitForRequestCompletion(requestComplete)) {
+        for (auto notification : notifications) {
+            delete notification;
+        }
+        waitForKeypress();
+        showNotificationsMenu();
+        return;
     }
     
-    if (!requestComplete) {
-        std::cout << "Request timed out. Please try again later." << std::endl;
-    }
-    
-    // Clean up notification objects
     for (auto notification : notifications) {
         delete notification;
     }
@@ -119,10 +91,7 @@ void ClientApplication::viewNotifications() {
 }
 
 void ClientApplication::configureNotifications() {
-    std::cout << "\n=====================================" << std::endl;
-    std::cout << "Welcome to the News Application, " << currentUser->userName << "! Date: " << getCurrentDateString() << std::endl;
-    std::cout << "Time: " << getCurrentTimeString() << std::endl;
-    std::cout << "C O N F I G U R E - N O T I F I C A T I O N S" << std::endl;
+    displayMenuHeader("C O N F I G U R E - N O T I F I C A T I O N S");
     std::cout << "1. Category Notifications" << std::endl;
     std::cout << "2. Keywords" << std::endl;
     std::cout << "3. Back" << std::endl;
@@ -147,10 +116,7 @@ void ClientApplication::configureNotifications() {
 }
 
 void ClientApplication::showNotificationCategoryMenu() {
-    std::cout << "\n=====================================" << std::endl;
-    std::cout << "Welcome to the News Application, " << currentUser->userName << "! Date: " << getCurrentDateString() << std::endl;
-    std::cout << "Time: " << getCurrentTimeString() << std::endl;
-    std::cout << "C O N F I G U R E - N O T I F I C A T I O N S" << std::endl;
+    displayMenuHeader("C O N F I G U R E - N O T I F I C A T I O N S");
     
     loadCategories();
     
@@ -174,14 +140,7 @@ void ClientApplication::showNotificationCategoryMenu() {
             requestComplete = true;
         });
     
-    int timeout = 0;
-    while (!requestComplete && timeout < 50) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        timeout++;
-    }
-    
-    if (!requestComplete) {
-        std::cout << "Request timed out. Please try again later." << std::endl;
+    if (!waitForRequestCompletion(requestComplete)) {
         waitForKeypress();
         configureNotifications();
         return;
@@ -232,14 +191,13 @@ void ClientApplication::showNotificationCategoryMenu() {
                     requestComplete = true;
                 });
             
-            timeout = 0;
-            while (!requestComplete && timeout < 50) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                timeout++;
-            }
-            
-            if (!requestComplete) {
-                std::cout << "Request timed out. Please try again later." << std::endl;
+            if (!waitForRequestCompletion(requestComplete)) {
+                for (auto setting : userSettings) {
+                    delete setting;
+                }
+                waitForKeypress();
+                configureNotifications();
+                return;
             }
             
             waitForKeypress();
@@ -260,8 +218,7 @@ void ClientApplication::showNotificationCategoryMenu() {
 }
 
 void ClientApplication::configureKeywords() {
-    std::cout << "\n=====================================" << std::endl;
-    std::cout << "K E Y W O R D  N O T I F I C A T I O N S" << std::endl;
+    displayMenuHeader("K E Y W O R D  N O T I F I C A T I O N S");
     std::cout << "=====================================" << std::endl;
     
     bool requestComplete = false;
@@ -286,14 +243,7 @@ void ClientApplication::configureKeywords() {
             requestComplete = true;
         });
     
-    int timeout = 0;
-    while (!requestComplete && timeout < 50) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        timeout++;
-    }
-    
-    if (!requestComplete) {
-        std::cout << "Request timed out. Please try again later." << std::endl;
+    if (!waitForRequestCompletion(requestComplete)) {
         waitForKeypress();
         configureNotifications();
         return;
@@ -333,14 +283,10 @@ void ClientApplication::configureKeywords() {
             requestComplete = true;
         });
         
-        timeout = 0;
-        while (!requestComplete && timeout < 50) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            timeout++;
-        }
-        
-        if (!requestComplete) {
-            std::cout << "Request timed out. Please try again later." << std::endl;
+        if (!waitForRequestCompletion(requestComplete)) {
+            waitForKeypress();
+            configureKeywords();
+            return;
         }
     } else if (choice == 2) {
         if (keywords.empty()) {
@@ -363,14 +309,10 @@ void ClientApplication::configureKeywords() {
             requestComplete = true;
         });
         
-        timeout = 0;
-        while (!requestComplete && timeout < 50) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            timeout++;
-        }
-        
-        if (!requestComplete) {
-            std::cout << "Request timed out. Please try again later." << std::endl;
+        if (!waitForRequestCompletion(requestComplete)) {
+            waitForKeypress();
+            configureKeywords();
+            return;
         }
     } else if (choice == 3) {
         waitForKeypress();

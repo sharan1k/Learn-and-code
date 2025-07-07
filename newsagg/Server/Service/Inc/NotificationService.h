@@ -25,7 +25,7 @@ public:
     bool createNotification(unsigned int userId, unsigned int articleId);    
     void processArticleForNotifications(unsigned int articleId);    
     bool sendEmailNotification(unsigned int userId, const std::vector<std::shared_ptr<Notification>>& notifications);
-    std::vector<unsigned int> getUsersInterestedInArticle(unsigned int articleId); // New method
+    std::vector<unsigned int> getUsersInterestedInArticle(unsigned int articleId);
 
 private:
     NotificationDao notificationDao;
