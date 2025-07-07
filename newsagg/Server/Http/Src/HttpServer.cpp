@@ -13,25 +13,25 @@ HttpServer::HttpServer(int port)
     int threadPoolSize = Config::SERVER_NUM_THREADS;
     std::cout << "Server using thread pool size: " << threadPoolSize << std::endl;
     #endif
-    server.set_logger([](const httplib::Request &req, const httplib::Response &res) {
-        std::cout << req.method << " " << req.path << " - Status: " << res.status << std::endl;
-    });    server.set_error_handler([](const auto& req, auto& res) {
-        if (res.body.empty()) {
+    server.set_logger([](const httplib::Request &request, const httplib::Response &response) {
+        std::cout << request.method << " " << request.path << " - Status: " << response.status << std::endl;
+    });    server.set_error_handler([](const auto& request, auto& response) {
+        if (response.body.empty()) {
             const char* fmt = "<p>Error Status: <span style='color:red;'>%d</span></p><p>Path: %s</p>";
             char buf[BUFSIZ];
-            snprintf(buf, sizeof(buf), fmt, res.status, req.path.c_str());
-            res.set_content(buf, "text/html");
+            snprintf(buf, sizeof(buf), fmt, response.status, request.path.c_str());
+            response.set_content(buf, "text/html");
         }
     });
     
-    server.set_exception_handler([](const auto& req, auto& res, std::exception_ptr ep) {
-        res.status = 500;
+    server.set_exception_handler([](const auto& request, auto& response, std::exception_ptr ep) {
+        response.status = 500;
         try {
             std::rethrow_exception(ep);
-        } catch (std::exception& e) {
-            res.set_content(e.what(), "text/plain");
+        } catch (std::exception& exception) {
+            response.set_content(exception.what(), "text/plain");
         } catch (...) {
-            res.set_content("Unknown Exception", "text/plain");
+            response.set_content("Unknown Exception", "text/plain");
         }
     });
 }

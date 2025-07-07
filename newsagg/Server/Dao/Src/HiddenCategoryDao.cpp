@@ -25,11 +25,11 @@ bool HiddenCategoryDao::hideCategory(unsigned int categoryId) {
         int result = stmt->executeUpdate();
         Logger::info("Category " + std::to_string(categoryId) + " has been hidden");
         return result > 0;
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in HiddenCategoryDao::hideCategory: " + std::string(e.what()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException in HiddenCategoryDao::hideCategory: " + std::string(exception.what()));
         return false;
-    } catch (std::exception &e) {
-        Logger::error("Exception in HiddenCategoryDao::hideCategory: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in HiddenCategoryDao::hideCategory: " + std::string(exception.what()));
         return false;
     }
 }
@@ -47,11 +47,11 @@ bool HiddenCategoryDao::unhideCategory(unsigned int categoryId) {
         int result = stmt->executeUpdate();
         Logger::info("Category " + std::to_string(categoryId) + " has been unhidden");
         return result > 0;
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in HiddenCategoryDao::unhideCategory: " + std::string(e.what()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException in HiddenCategoryDao::unhideCategory: " + std::string(exception.what()));
         return false;
-    } catch (std::exception &e) {
-        Logger::error("Exception in HiddenCategoryDao::unhideCategory: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in HiddenCategoryDao::unhideCategory: " + std::string(exception.what()));
         return false;
     }
 }
@@ -65,14 +65,14 @@ bool HiddenCategoryDao::isCategoryHidden(unsigned int categoryId) {
         ));
         
         stmt->setUInt(1, categoryId);
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery());
         
-        return res->next();
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in HiddenCategoryDao::isCategoryHidden: " + std::string(e.what()));
+        return response->next();
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException in HiddenCategoryDao::isCategoryHidden: " + std::string(exception.what()));
         return false;
-    } catch (std::exception &e) {
-        Logger::error("Exception in HiddenCategoryDao::isCategoryHidden: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in HiddenCategoryDao::isCategoryHidden: " + std::string(exception.what()));
         return false;
     }
 }
@@ -87,17 +87,17 @@ std::vector<unsigned int> HiddenCategoryDao::getAllHiddenCategoryIds() {
             "SELECT categoryId FROM hiddenCategory"
         ));
         
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery());
         
-        while (res->next()) {
-            hiddenIds.push_back(res->getUInt("categoryId"));
+        while (response->next()) {
+            hiddenIds.push_back(response->getUInt("categoryId"));
         }
         
         Logger::debug("Retrieved " + std::to_string(hiddenIds.size()) + " hidden category IDs");
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in HiddenCategoryDao::getAllHiddenCategoryIds: " + std::string(e.what()));
-    } catch (std::exception &e) {
-        Logger::error("Exception in HiddenCategoryDao::getAllHiddenCategoryIds: " + std::string(e.what()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException in HiddenCategoryDao::getAllHiddenCategoryIds: " + std::string(exception.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in HiddenCategoryDao::getAllHiddenCategoryIds: " + std::string(exception.what()));
     }
     
     return hiddenIds;

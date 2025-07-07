@@ -22,8 +22,8 @@ NotificationService::~NotificationService() {
 std::vector<std::shared_ptr<Notification>> NotificationService::getNotifications(unsigned int userId) {
     try {
         return notificationDao.getNotificationsByUser(userId);
-    } catch (const std::exception& e) {
-        std::cerr << "Error in getNotifications: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in getNotifications: " << exception.what() << std::endl;
         return {};
     }
 }
@@ -31,8 +31,8 @@ std::vector<std::shared_ptr<Notification>> NotificationService::getNotifications
 bool NotificationService::markNotificationsAsSeen(unsigned int userId) {
     try {
         return notificationDao.markAllAsSeen(userId);
-    } catch (const std::exception& e) {
-        std::cerr << "Error in markNotificationsAsSeen: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in markNotificationsAsSeen: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -40,8 +40,8 @@ bool NotificationService::markNotificationsAsSeen(unsigned int userId) {
 std::vector<std::shared_ptr<NotificationSetting>> NotificationService::getNotificationSettings(unsigned int userId) {
     try {
         return settingDao.getByUser(userId);
-    } catch (const std::exception& e) {
-        std::cerr << "Error in getNotificationSettings: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in getNotificationSettings: " << exception.what() << std::endl;
         return {};
     }
 }
@@ -61,8 +61,8 @@ bool NotificationService::updateNotificationSetting(unsigned int userId, unsigne
         } else {
             return settingDao.remove(userId, categoryId);
         }
-    } catch (const std::exception& e) {
-        std::cerr << "Error in updateNotificationSetting: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in updateNotificationSetting: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -70,8 +70,8 @@ bool NotificationService::updateNotificationSetting(unsigned int userId, unsigne
 std::vector<std::string> NotificationService::getKeywords(unsigned int userId) {
     try {
         return keywordDao.getByUser(userId);
-    } catch (const std::exception& e) {
-        std::cerr << "Error in getKeywords: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in getKeywords: " << exception.what() << std::endl;
         return {};
     }
 }
@@ -79,8 +79,8 @@ std::vector<std::string> NotificationService::getKeywords(unsigned int userId) {
 bool NotificationService::addKeyword(unsigned int userId, const std::string& keyword) {
     try {
         return keywordDao.add(userId, keyword);
-    } catch (const std::exception& e) {
-        std::cerr << "Error in addKeyword: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in addKeyword: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -88,8 +88,8 @@ bool NotificationService::addKeyword(unsigned int userId, const std::string& key
 bool NotificationService::removeKeyword(unsigned int userId, const std::string& keyword) {
     try {
         return keywordDao.remove(userId, keyword);
-    } catch (const std::exception& e) {
-        std::cerr << "Error in removeKeyword: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in removeKeyword: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -122,8 +122,8 @@ bool NotificationService::createNotification(unsigned int userId, unsigned int a
         }
         
         return success;
-    } catch (const std::exception& e) {
-        std::cerr << "Error in createNotification: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in createNotification: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -166,8 +166,8 @@ void NotificationService::processArticleForNotifications(unsigned int articleId)
                 createNotification(userId, articleId);
             }
         }
-    } catch (const std::exception& e) {
-        std::cerr << "Error in processArticleForNotifications: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in processArticleForNotifications: " << exception.what() << std::endl;
     }
 }
 
@@ -200,8 +200,8 @@ bool NotificationService::sendEmailNotification(unsigned int userId, const std::
             "News Aggregator - You have " + std::to_string(notificationMessages.size()) + " new notifications",
             notificationMessages
         );
-    } catch (const std::exception& e) {
-        std::cerr << "Error in sendEmailNotification: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in sendEmailNotification: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -244,8 +244,8 @@ std::vector<unsigned int> NotificationService::getUsersInterestedInArticle(unsig
         
         interestedUsers.assign(uniqueUsers.begin(), uniqueUsers.end());
         
-    } catch (const std::exception& e) {
-        std::cerr << "Error in getUsersInterestedInArticle: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error in getUsersInterestedInArticle: " << exception.what() << std::endl;
     }
     
     return interestedUsers;

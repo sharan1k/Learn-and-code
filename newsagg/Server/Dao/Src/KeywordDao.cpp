@@ -18,17 +18,17 @@ std::vector<std::string> KeywordDao::getByUser(unsigned int userId) {
         }
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery(
             "SELECT keyword FROM keyword WHERE userId = " + std::to_string(userId)
         ));
         
-        while (res->next()) {
-            keywords.push_back(res->getString("keyword"));
+        while (response->next()) {
+            keywords.push_back(response->getString("keyword"));
         }
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return keywords;
@@ -46,20 +46,20 @@ std::map<unsigned int, std::vector<std::string>> KeywordDao::getAll() {
         }
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery(
             "SELECT userId, keyword FROM keyword"
         ));
         
-        while (res->next()) {
-            unsigned int userId = res->getUInt("userId");
-            std::string keyword = res->getString("keyword");
+        while (response->next()) {
+            unsigned int userId = response->getUInt("userId");
+            std::string keyword = response->getString("keyword");
             
             result[userId].push_back(keyword);
         }
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return result;
@@ -83,10 +83,10 @@ bool KeywordDao::add(unsigned int userId, const std::string& keyword) {
         
         int affectedRows = pstmt->executeUpdate();
         return affectedRows > 0;
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;
@@ -110,10 +110,10 @@ bool KeywordDao::remove(unsigned int userId, const std::string& keyword) {
         
         int affectedRows = pstmt->executeUpdate();
         return affectedRows > 0;
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;

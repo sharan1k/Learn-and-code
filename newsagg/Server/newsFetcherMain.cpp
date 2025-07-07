@@ -26,14 +26,14 @@ void initDbConnection() {
     try {
         DbConnection::initDbConnection(dbHost, dbUser, Config::DATABASE_PASSWORD, dbSchema);
         Logger::info("Database connection initialized successfully");
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException: " + std::string(e.what()));
-        Logger::error("SQLState: " + std::string(e.getSQLState()));
-        Logger::error("ErrorCode: " + std::to_string(e.getErrorCode()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException: " + std::string(exception.what()));
+        Logger::error("SQLState: " + std::string(exception.getSQLState()));
+        Logger::error("ErrorCode: " + std::to_string(exception.getErrorCode()));
         Logger::error("News fetcher will exit due to database connectivity failure");
         exit(1);
-    } catch (std::exception &e) {
-        Logger::error("Error: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Error: " + std::string(exception.what()));
         Logger::error("News fetcher will exit due to database connectivity failure");
         exit(1);
     }
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
         try {
             fetchIntervalMinutes = std::stoi(argv[1]);
             Logger::info("Using custom fetch interval: " + std::to_string(fetchIntervalMinutes) + " minutes");
-        } catch (const std::exception& e) {
+        } catch (const std::exception& exception) {
             Logger::warning("Invalid interval: " + std::string(argv[1]) + 
                           ". Using default: " + std::to_string(fetchIntervalMinutes) + " minutes");
         }

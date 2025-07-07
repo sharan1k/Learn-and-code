@@ -28,12 +28,12 @@ bool ExternalServerDao::createExternalServer(const ExternalServer& server) {
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in createExternalServer: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in createExternalServer: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in createExternalServer: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in createExternalServer: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -48,25 +48,25 @@ std::shared_ptr<ExternalServer> ExternalServerDao::findById(unsigned int apiId) 
         ));
         
         pstmt->setUInt(1, apiId);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto server = std::make_shared<ExternalServer>();
-            server->apiId = res->getUInt("apiId");
-            server->apiName = res->getString("apiName");
-            server->apiStatus = (res->getString("apiStatus") == "active") ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE;
-            server->lastAccessed = res->getString("lastAccessed");
-            server->apiKey = res->getString("apiKey");
+            server->apiId = response->getUInt("apiId");
+            server->apiName = response->getString("apiName");
+            server->apiStatus = (response->getString("apiStatus") == "active") ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE;
+            server->lastAccessed = response->getString("lastAccessed");
+            server->apiKey = response->getString("apiKey");
             return server;
         }
         
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findById: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findById: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findById: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in findById: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -81,25 +81,25 @@ std::shared_ptr<ExternalServer> ExternalServerDao::findByName(const std::string&
         ));
         
         pstmt->setString(1, apiName);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto server = std::make_shared<ExternalServer>();
-            server->apiId = res->getUInt("apiId");
-            server->apiName = res->getString("apiName");
-            server->apiStatus = (res->getString("apiStatus") == "active") ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE;
-            server->lastAccessed = res->getString("lastAccessed");
-            server->apiKey = res->getString("apiKey");
+            server->apiId = response->getUInt("apiId");
+            server->apiName = response->getString("apiName");
+            server->apiStatus = (response->getString("apiStatus") == "active") ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE;
+            server->lastAccessed = response->getString("lastAccessed");
+            server->apiKey = response->getString("apiKey");
             return server;
         }
         
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findByName: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findByName: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findByName: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in findByName: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -121,12 +121,12 @@ bool ExternalServerDao::updateExternalServer(const ExternalServer& server) {
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in updateExternalServer: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in updateExternalServer: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in updateExternalServer: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in updateExternalServer: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -144,12 +144,12 @@ bool ExternalServerDao::deleteExternalServer(unsigned int apiId) {
         int rowsAffected = pstmt->executeUpdate();
         
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in deleteExternalServer: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in deleteExternalServer: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in deleteExternalServer: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in deleteExternalServer: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -162,22 +162,22 @@ std::vector<std::shared_ptr<ExternalServer>> ExternalServerDao::getAllExternalSe
         auto conn = dbInstance->getConnection();
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT * FROM externalServer"));
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery("SELECT * FROM externalServer"));
         
-        while (res->next()) {
+        while (response->next()) {
             auto server = std::make_shared<ExternalServer>();
-            server->apiId = res->getUInt("apiId");
-            server->apiName = res->getString("apiName");
-            server->apiStatus = (res->getString("apiStatus") == "active") ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE;
-            server->lastAccessed = res->getString("lastAccessed");
-            server->apiKey = res->getString("apiKey");
+            server->apiId = response->getUInt("apiId");
+            server->apiName = response->getString("apiName");
+            server->apiStatus = (response->getString("apiStatus") == "active") ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE;
+            server->lastAccessed = response->getString("lastAccessed");
+            server->apiKey = response->getString("apiKey");
             servers.push_back(server);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getAllExternalServers: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getAllExternalServers: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getAllExternalServers: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getAllExternalServers: " << exception.what() << std::endl;
     }
     
     return servers;
@@ -197,12 +197,12 @@ bool ExternalServerDao::updateLastAccessed(unsigned int apiId, const std::string
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in updateLastAccessed: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in updateLastAccessed: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in updateLastAccessed: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in updateLastAccessed: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -221,12 +221,12 @@ bool ExternalServerDao::setApiStatus(unsigned int apiId, ApiStatus status) {
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in setApiStatus: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in setApiStatus: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in setApiStatus: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in setApiStatus: " << exception.what() << std::endl;
         return false;
     }
 }

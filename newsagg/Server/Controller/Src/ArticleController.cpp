@@ -8,7 +8,7 @@ ArticleService& ArticleController::getArticleService() {
     return service;
 }
 
-void ArticleController::sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status, const std::string& message) {
+void ArticleController::sendSuccessResponse(httplib::Response& response, const nlohmann::json& data, int status, const std::string& message) {
     nlohmann::json response = {{"status", "success"}};
     
     if (!data.is_null()) {
@@ -19,18 +19,18 @@ void ArticleController::sendSuccessResponse(httplib::Response& res, const nlohma
         response["message"] = message;
     }
     
-    res.status = status;
-    res.set_content(response.dump(), "application/json");
+    response.status = status;
+    response.set_content(response.dump(), "application/json");
 }
 
-void ArticleController::sendErrorResponse(httplib::Response& res, const std::string& message, int status) {
+void ArticleController::sendErrorResponse(httplib::Response& response, const std::string& message, int status) {
     nlohmann::json response = {
         {"status", "error"},
         {"message", message}
     };
     
-    res.status = status;
-    res.set_content(response.dump(), "application/json");
+    response.status = status;
+    response.set_content(response.dump(), "application/json");
 }
 
 void ArticleController::registerRoutes(HttpServer& server) {
@@ -53,10 +53,10 @@ bool ArticleController::isValidDateFormat(const std::string& date) {
     return std::regex_match(date, datePattern);
 }
 
-unsigned int ArticleController::getUserIdFromRequest(const httplib::Request& req) {
-    if (req.path_params.find("userId") != req.path_params.end()) {
+unsigned int ArticleController::getUserIdFromRequest(const httplib::Request& request) {
+    if (request.path_params.find("userId") != request.path_params.end()) {
         try {
-            return std::stoul(req.path_params.at("userId"));
+            return std::stoul(request.path_params.at("userId"));
         } catch (...) {
             return 0;
         }
@@ -64,10 +64,10 @@ unsigned int ArticleController::getUserIdFromRequest(const httplib::Request& req
     return 0;
 }
 
-unsigned int ArticleController::getArticleIdFromRequest(const httplib::Request& req) {
-    if (req.path_params.find("articleId") != req.path_params.end()) {
+unsigned int ArticleController::getArticleIdFromRequest(const httplib::Request& request) {
+    if (request.path_params.find("articleId") != request.path_params.end()) {
         try {
-            return std::stoul(req.path_params.at("articleId"));
+            return std::stoul(request.path_params.at("articleId"));
         } catch (...) {
             return 0;
         }
@@ -75,10 +75,10 @@ unsigned int ArticleController::getArticleIdFromRequest(const httplib::Request& 
     return 0;
 }
 
-int ArticleController::getLimitFromRequest(const httplib::Request& req, int defaultLimit) {
-    if (req.has_param("limit")) {
+int ArticleController::getLimitFromRequest(const httplib::Request& request, int defaultLimit) {
+    if (request.has_param("limit")) {
         try {
-            return std::stoi(req.get_param_value("limit"));
+            return std::stoi(request.get_param_value("limit"));
         } catch (...) {
             return defaultLimit;
         }
@@ -86,9 +86,9 @@ int ArticleController::getLimitFromRequest(const httplib::Request& req, int defa
     return defaultLimit;
 }
 
-void ArticleController::handleGetTodayHeadlines(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleGetTodayHeadlines(const httplib::Request& request, httplib::Response& response) {
     try {
-        int limit = getLimitFromRequest(req);
+        int limit = getLimitFromRequest(request);
         auto articles = getArticleService().getTodayHeadlines(limit);
         
         nlohmann::json responseData = nlohmann::json::array();
@@ -96,32 +96,32 @@ void ArticleController::handleGetTodayHeadlines(const httplib::Request& req, htt
             responseData.push_back(article->toJson());
         }
         
-        sendSuccessResponse(res, responseData, 200, "Headlines retrieved successfully");
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+        sendSuccessResponse(response, responseData, 200, "Headlines retrieved successfully");
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }
 
-void ArticleController::handleGetHeadlinesByDateRange(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleGetHeadlinesByDateRange(const httplib::Request& request, httplib::Response& response) {
     try {
-        if (!req.has_param("startDate") || !req.has_param("endDate")) {
-            sendErrorResponse(res, "Start date and end date are required", 400);
+        if (!request.has_param("startDate") || !request.has_param("endDate")) {
+            sendErrorResponse(response, "Start date and end date are required", 400);
             return;
         }
         
-        std::string startDate = req.get_param_value("startDate");
-        std::string endDate = req.get_param_value("endDate");
+        std::string startDate = request.get_param_value("startDate");
+        std::string endDate = request.get_param_value("endDate");
         
         if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate)) {
-            sendErrorResponse(res, "Invalid date format. Use YYYY-MM-DD format.", 400);
+            sendErrorResponse(response, "Invalid date format. Use YYYY-MM-DD format.", 400);
             return;
         }
         
-        int limit = getLimitFromRequest(req);
+        int limit = getLimitFromRequest(request);
         std::vector<std::shared_ptr<Article>> articles;
         
-        if (req.has_param("categoryId")) {
-            unsigned int categoryId = std::stoul(req.get_param_value("categoryId"));
+        if (request.has_param("categoryId")) {
+            unsigned int categoryId = std::stoul(request.get_param_value("categoryId"));
             articles = getArticleService().getHeadlinesByDateRangeAndCategory(startDate, endDate, categoryId, limit);
         } else {
             articles = getArticleService().getHeadlinesByDateRange(startDate, endDate, limit);
@@ -132,47 +132,47 @@ void ArticleController::handleGetHeadlinesByDateRange(const httplib::Request& re
             responseData.push_back(article->toJson());
         }
         
-        sendSuccessResponse(res, responseData, 200, "Headlines retrieved successfully");
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+        sendSuccessResponse(response, responseData, 200, "Headlines retrieved successfully");
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }
 
-void ArticleController::handleGetHeadlinesByCategory(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleGetHeadlinesByCategory(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling get headlines by category request" << std::endl;
     
     try {
-        if (req.path_params.find("categoryId") == req.path_params.end()) {
-            res.status = 400;
+        if (request.path_params.find("categoryId") == request.path_params.end()) {
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Category ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         unsigned int categoryId;
         try {
-            categoryId = std::stoul(req.path_params.at("categoryId"));
+            categoryId = std::stoul(request.path_params.at("categoryId"));
         } catch (...) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid category ID"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         int limit = 10;
-        if (req.has_param("limit")) {
-            limit = std::stoi(req.get_param_value("limit"));
+        if (request.has_param("limit")) {
+            limit = std::stoi(request.get_param_value("limit"));
         }
         
-        if (req.has_param("startDate") && req.has_param("endDate")) {
-            std::string startDate = req.get_param_value("startDate");
-            std::string endDate = req.get_param_value("endDate");
+        if (request.has_param("startDate") && request.has_param("endDate")) {
+            std::string startDate = request.get_param_value("startDate");
+            std::string endDate = request.get_param_value("endDate");
             
             if (isValidDateFormat(startDate) && isValidDateFormat(endDate)) {
                 auto articles = getArticleService().getHeadlinesByDateRangeAndCategory(startDate, endDate, categoryId, limit);
@@ -187,7 +187,7 @@ void ArticleController::handleGetHeadlinesByCategory(const httplib::Request& req
                     jsonResponse["data"].push_back(article->toJson());
                 }
                 
-                res.set_content(jsonResponse.dump(), "application/json");
+                response.set_content(jsonResponse.dump(), "application/json");
                 return;
             }
         }
@@ -204,54 +204,54 @@ void ArticleController::handleGetHeadlinesByCategory(const httplib::Request& req
             jsonResponse["data"].push_back(article->toJson());
         }
         
-        res.set_content(jsonResponse.dump(), "application/json");
+        response.set_content(jsonResponse.dump(), "application/json");
         
-    } catch (const std::exception& e) {
-        res.status = 500;
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleGetArticleDetails(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleGetArticleDetails(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling get article details request" << std::endl;
     
     try {
-        if (req.path_params.find("articleId") == req.path_params.end()) {
-            res.status = 400;
+        if (request.path_params.find("articleId") == request.path_params.end()) {
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Article ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         unsigned int articleId;
         try {
-            articleId = std::stoul(req.path_params.at("articleId"));
+            articleId = std::stoul(request.path_params.at("articleId"));
         } catch (...) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid article ID"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         auto article = getArticleService().getArticleDetails(articleId);
         
         if (!article) {
-            res.status = 404;
+            response.status = 404;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Article not found"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
@@ -261,42 +261,42 @@ void ArticleController::handleGetArticleDetails(const httplib::Request& req, htt
             {"data", article->toJson()}
         };
         
-        res.set_content(jsonResponse.dump(), "application/json");
+        response.set_content(jsonResponse.dump(), "application/json");
         
-    } catch (const std::exception& e) {
-        res.status = 500;
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleSaveArticle(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleSaveArticle(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling save article request" << std::endl;
     
     try {
-        unsigned int userId = getUserIdFromRequest(req);
+        unsigned int userId = getUserIdFromRequest(request);
         if (userId == 0) {
-            res.status = 401;
+            response.status = 401;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Unauthorized"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         
         if (!requestData.contains("articleId")) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Article ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
@@ -309,45 +309,45 @@ void ArticleController::handleSaveArticle(const httplib::Request& req, httplib::
                 {"status", "success"},
                 {"message", "Article saved successfully"}
             };
-            res.set_content(jsonResponse.dump(), "application/json");
+            response.set_content(jsonResponse.dump(), "application/json");
         } else {
-            res.status = 404;
+            response.status = 404;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Failed to save article. Article might not exist."}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
         }
         
-    } catch (const nlohmann::json::parse_error& e) {
-        res.status = 400;
+    } catch (const nlohmann::json::parse_error& exception) {
+        response.status = 400;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Invalid JSON format: " + std::string(e.what())}
+            {"message", "Invalid JSON format: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
-    } catch (const std::exception& e) {
-        res.status = 500;
+        response.set_content(errorResponse.dump(), "application/json");
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleGetSavedArticles(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleGetSavedArticles(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling get saved articles request" << std::endl;
     
     try {
-        unsigned int userId = getUserIdFromRequest(req);
+        unsigned int userId = getUserIdFromRequest(request);
         if (userId == 0) {
-            res.status = 401;
+            response.status = 401;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Unauthorized"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
@@ -363,53 +363,53 @@ void ArticleController::handleGetSavedArticles(const httplib::Request& req, http
             jsonResponse["data"].push_back(article->toJson());
         }
         
-        res.set_content(jsonResponse.dump(), "application/json");
+        response.set_content(jsonResponse.dump(), "application/json");
         
-    } catch (const std::exception& e) {
-        res.status = 500;
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleRemoveSavedArticle(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleRemoveSavedArticle(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling remove saved article request" << std::endl;
     
     try {
-        unsigned int userId = getUserIdFromRequest(req);
+        unsigned int userId = getUserIdFromRequest(request);
         if (userId == 0) {
-            res.status = 401;
+            response.status = 401;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Unauthorized"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
-        if (req.path_params.find("articleId") == req.path_params.end()) {
-            res.status = 400;
+        if (request.path_params.find("articleId") == request.path_params.end()) {
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Article ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         unsigned int articleId;
         try {
-            articleId = std::stoul(req.path_params.at("articleId"));
+            articleId = std::stoul(request.path_params.at("articleId"));
         } catch (...) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid article ID"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
@@ -420,70 +420,70 @@ void ArticleController::handleRemoveSavedArticle(const httplib::Request& req, ht
                 {"status", "success"},
                 {"message", "Saved article removed successfully"}
             };
-            res.set_content(jsonResponse.dump(), "application/json");
+            response.set_content(jsonResponse.dump(), "application/json");
         } else {
-            res.status = 404;
+            response.status = 404;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Failed to remove saved article. It might not exist."}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
         }
         
-    } catch (const std::exception& e) {
-        res.status = 500;
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleSearchArticles(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleSearchArticles(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling search articles request" << std::endl;
     
     try {
-        if (!req.has_param("query")) {
-            res.status = 400;
+        if (!request.has_param("query")) {
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Search query is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
-        std::string query = req.get_param_value("query");
+        std::string query = request.get_param_value("query");
         
         int limit = 10; 
-        if (req.has_param("limit")) {
-            limit = std::stoi(req.get_param_value("limit"));
+        if (request.has_param("limit")) {
+            limit = std::stoi(request.get_param_value("limit"));
         }
         
-        bool hasDateRange = req.has_param("startDate") && req.has_param("endDate");
-        std::string startDate = hasDateRange ? req.get_param_value("startDate") : "";
-        std::string endDate = hasDateRange ? req.get_param_value("endDate") : "";
+        bool hasDateRange = request.has_param("startDate") && request.has_param("endDate");
+        std::string startDate = hasDateRange ? request.get_param_value("startDate") : "";
+        std::string endDate = hasDateRange ? request.get_param_value("endDate") : "";
         
         if (hasDateRange && (!isValidDateFormat(startDate) || !isValidDateFormat(endDate))) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid date format. Use YYYY-MM-DD format."}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
-        bool hasSortParam = req.has_param("sortBy");
-        std::string sortBy = hasSortParam ? req.get_param_value("sortBy") : "date";
+        bool hasSortParam = request.has_param("sortBy");
+        std::string sortBy = hasSortParam ? request.get_param_value("sortBy") : "date";
         
         bool sortByLikes = sortBy == "likes";
         bool sortByDislikes = sortBy == "dislikes";
         bool isDescending = true; 
         
-        if (req.has_param("order")) {
-            isDescending = req.get_param_value("order") == "desc";
+        if (request.has_param("order")) {
+            isDescending = request.get_param_value("order") == "desc";
         }
         
         std::vector<std::shared_ptr<Article>> articles;
@@ -515,19 +515,19 @@ void ArticleController::handleSearchArticles(const httplib::Request& req, httpli
             jsonResponse["data"].push_back(article->toJson());
         }
         
-        res.set_content(jsonResponse.dump(), "application/json");
+        response.set_content(jsonResponse.dump(), "application/json");
         
-    } catch (const std::exception& e) {
-        res.status = 500;
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleGetCategories(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleGetCategories(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling get categories request" << std::endl;
     
     try {
@@ -543,54 +543,54 @@ void ArticleController::handleGetCategories(const httplib::Request& req, httplib
             jsonResponse["data"].push_back(category->toJson());
         }
         
-        res.set_content(jsonResponse.dump(), "application/json");
+        response.set_content(jsonResponse.dump(), "application/json");
         
-    } catch (const std::exception& e) {
-        res.status = 500;
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleLikeArticle(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleLikeArticle(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling like article request" << std::endl;
     
     try {
-        if (req.path_params.find("articleId") == req.path_params.end()) {
-            res.status = 400;
+        if (request.path_params.find("articleId") == request.path_params.end()) {
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Article ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         unsigned int articleId;
         try {
-            articleId = std::stoul(req.path_params.at("articleId"));
+            articleId = std::stoul(request.path_params.at("articleId"));
         } catch (...) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid article ID format"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         
         if (!requestData.contains("userId")) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "User ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
@@ -603,69 +603,69 @@ void ArticleController::handleLikeArticle(const httplib::Request& req, httplib::
                 {"status", "success"},
                 {"message", "Article liked successfully"}
             };
-            res.set_content(jsonResponse.dump(), "application/json");
+            response.set_content(jsonResponse.dump(), "application/json");
         } else {
-            res.status = 500;
+            response.status = 500;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Failed to like article"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
         }
         
-    } catch (const nlohmann::json::parse_error& e) {
-        res.status = 400;
+    } catch (const nlohmann::json::parse_error& exception) {
+        response.status = 400;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Invalid JSON format: " + std::string(e.what())}
+            {"message", "Invalid JSON format: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
-    } catch (const std::exception& e) {
-        res.status = 500;
+        response.set_content(errorResponse.dump(), "application/json");
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 
-void ArticleController::handleDislikeArticle(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleDislikeArticle(const httplib::Request& request, httplib::Response& response) {
     std::cout << "Handling dislike article request" << std::endl;
     
     try {
-        if (req.path_params.find("articleId") == req.path_params.end()) {
-            res.status = 400;
+        if (request.path_params.find("articleId") == request.path_params.end()) {
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Article ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
         unsigned int articleId;
         try {
-            articleId = std::stoul(req.path_params.at("articleId"));
+            articleId = std::stoul(request.path_params.at("articleId"));
         } catch (...) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid article ID format"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         
         if (!requestData.contains("userId")) {
-            res.status = 400;
+            response.status = 400;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "User ID is required"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
             return;
         }
         
@@ -678,30 +678,30 @@ void ArticleController::handleDislikeArticle(const httplib::Request& req, httpli
                 {"status", "success"},
                 {"message", "Article disliked successfully"}
             };
-            res.set_content(jsonResponse.dump(), "application/json");
+            response.set_content(jsonResponse.dump(), "application/json");
         } else {
-            res.status = 500;
+            response.status = 500;
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Failed to dislike article"}
             };
-            res.set_content(errorResponse.dump(), "application/json");
+            response.set_content(errorResponse.dump(), "application/json");
         }
         
-    } catch (const nlohmann::json::parse_error& e) {
-        res.status = 400;
+    } catch (const nlohmann::json::parse_error& exception) {
+        response.status = 400;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Invalid JSON format: " + std::string(e.what())}
+            {"message", "Invalid JSON format: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
-    } catch (const std::exception& e) {
-        res.status = 500;
+        response.set_content(errorResponse.dump(), "application/json");
+    } catch (const std::exception& exception) {
+        response.status = 500;
         nlohmann::json errorResponse = {
             {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
+            {"message", "Server error: " + std::string(exception.what())}
         };
-        res.set_content(errorResponse.dump(), "application/json");
+        response.set_content(errorResponse.dump(), "application/json");
     }
 }
 

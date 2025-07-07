@@ -25,12 +25,12 @@ bool CategoryDao::createCategory(const Category& category) {
         int rowsAffected = pstmt->executeUpdate();
         
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in createCategory: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in createCategory: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in createCategory: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in createCategory: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -45,22 +45,22 @@ std::shared_ptr<Category> CategoryDao::findById(unsigned int categoryId) {
         ));
         
         pstmt->setUInt(1, categoryId);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto category = std::make_shared<Category>();
-            category->categoryId = res->getUInt("categoryId");
-            category->categoryName = res->getString("categoryName");
+            category->categoryId = response->getUInt("categoryId");
+            category->categoryName = response->getString("categoryName");
             return category;
         }
         
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findById: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findById: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findById: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in findById: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -75,22 +75,22 @@ std::shared_ptr<Category> CategoryDao::findByName(const std::string& categoryNam
         ));
         
         pstmt->setString(1, categoryName);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto category = std::make_shared<Category>();
-            category->categoryId = res->getUInt("categoryId");
-            category->categoryName = res->getString("categoryName");
+            category->categoryId = response->getUInt("categoryId");
+            category->categoryName = response->getString("categoryName");
             return category;
         }
         
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findByName: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findByName: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findByName: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in findByName: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -103,23 +103,23 @@ std::vector<std::shared_ptr<Category>> CategoryDao::getAllCategories() {
         auto conn = dbInstance->getConnection();
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery(
             "SELECT c.* FROM category c "
             "WHERE NOT EXISTS (SELECT 1 FROM hiddenCategory hc WHERE hc.categoryId = c.categoryId) "
             "ORDER BY c.categoryName"
         ));
         
-        while (res->next()) {
+        while (response->next()) {
             auto category = std::make_shared<Category>();
-            category->categoryId = res->getUInt("categoryId");
-            category->categoryName = res->getString("categoryName");
+            category->categoryId = response->getUInt("categoryId");
+            category->categoryName = response->getString("categoryName");
             categories.push_back(category);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getAllCategories: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getAllCategories: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getAllCategories: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getAllCategories: " << exception.what() << std::endl;
     }
     
     return categories;
@@ -139,12 +139,12 @@ bool CategoryDao::updateCategory(const Category& category) {
         int rowsAffected = pstmt->executeUpdate();
         
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in updateCategory: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in updateCategory: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in updateCategory: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in updateCategory: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -162,12 +162,12 @@ bool CategoryDao::deleteCategory(unsigned int categoryId) {
         int rowsAffected = pstmt->executeUpdate();
         
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in deleteCategory: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in deleteCategory: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in deleteCategory: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in deleteCategory: " << exception.what() << std::endl;
         return false;
     }
 }

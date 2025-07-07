@@ -34,13 +34,13 @@ bool LikesDao::addLike(unsigned int userId, unsigned int articleId, const std::s
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in addLike: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-        std::cerr << "ErrorCode: " << e.getErrorCode() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in addLike: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+        std::cerr << "ErrorCode: " << exception.getErrorCode() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Error in addLike: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in addLike: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -56,21 +56,21 @@ bool LikesDao::hasUserLiked(unsigned int userId, unsigned int articleId) {
         pstmt->setUInt(1, userId);
         pstmt->setUInt(2, articleId);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
-            int count = res->getInt("count");
+        if (response->next()) {
+            int count = response->getInt("count");
             return count > 0;
         }
         
         return false;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in hasUserLiked: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-        std::cerr << "ErrorCode: " << e.getErrorCode() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in hasUserLiked: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+        std::cerr << "ErrorCode: " << exception.getErrorCode() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Error in hasUserLiked: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in hasUserLiked: " << exception.what() << std::endl;
         return false;
     }
 }

@@ -165,8 +165,8 @@ bool NewsSourceManager::fetchNewsSequentially() {
                         overallSuccess = false;
                     }
                 }
-            } catch (const std::exception& e) {
-                Logger::error("Error fetching news from source 'NewsApi': " + std::string(e.what()));
+            } catch (const std::exception& exception) {
+                Logger::error("Error fetching news from source 'NewsApi': " + std::string(exception.what()));
                 overallSuccess = false;
             } catch (...) {
                 Logger::error("Unknown error fetching news from source 'NewsApi'");
@@ -191,8 +191,8 @@ bool NewsSourceManager::fetchNewsSequentially() {
                         overallSuccess = false;
                     }
                 }
-            } catch (const std::exception& e) {
-                Logger::error("Error fetching news from source 'TheNewsApi': " + std::string(e.what()));
+            } catch (const std::exception& exception) {
+                Logger::error("Error fetching news from source 'TheNewsApi': " + std::string(exception.what()));
                 overallSuccess = false;
             } catch (...) {
                 Logger::error("Unknown error fetching news from source 'TheNewsApi'");

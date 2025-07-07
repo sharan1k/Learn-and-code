@@ -36,19 +36,19 @@ std::vector<Article> TheNewsApi::fetchNews() {
         updateLastAccessed();
         Logger::debug("Setting up HTTP client for TheNewsApi");
         
-        httplib::SSLClient cli("api.thenewsapi.com");
-        cli.set_connection_timeout(5); 
-        cli.set_read_timeout(10);
-        cli.set_write_timeout(10);
-        cli.enable_server_certificate_verification(false);
+        httplib::SSLClient client("api.thenewsapi.com");
+        client.set_connection_timeout(5); 
+        client.set_read_timeout(10);
+        client.set_write_timeout(10);
+        client.enable_server_certificate_verification(false);
         
         std::string path = "/v1/news/top?api_token=" + apiKey + "&locale=us&limit=3";
         Logger::info("Fetching news from TheNewsApi");
         
-        auto res = cli.Get(path.c_str());
+        auto response = client.Get(path.c_str());
         
-        if (res && res->status == 200) {
-            nlohmann::json response = nlohmann::json::parse(res->body);
+        if (response && response->status == 200) {
+            nlohmann::json response = nlohmann::json::parse(response->body);
             
             if (response.contains("data") && response["data"].is_array()) {
                 for (const auto& item : response["data"]) {
@@ -75,17 +75,17 @@ std::vector<Article> TheNewsApi::fetchNews() {
                     } else {
                         auto now = std::chrono::system_clock::now();
                         auto in_time_t = std::chrono::system_clock::to_time_t(now);
-                        std::stringstream ss;
-                        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-                        article.publishedAt = ss.str();
+                        std::stringstream stringStream;
+                        stringStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+                        article.publishedAt = stringStream.str();
                     }
                     
                     articles.push_back(article);
                 }
             }
         }
-    } catch (const std::exception& e) {
-        Logger::error("Exception in TheNewsApi fetchNews: " + std::string(e.what()));
+    } catch (const std::exception& exception) {
+        Logger::error("Exception in TheNewsApi fetchNews: " + std::string(exception.what()));
     } catch (...) {
         Logger::error("Unknown exception in TheNewsApi fetchNews");
     }
@@ -118,8 +118,8 @@ void TheNewsApi::setActive(bool isActive) {
         if (server) {
             serverDao.setApiStatus(server->apiId, active ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE);
         }
-    } catch (const std::exception& e) {
-        Logger::error("Error updating API status for TheNewsApi: " + std::string(e.what()));
+    } catch (const std::exception& exception) {
+        Logger::error("Error updating API status for TheNewsApi: " + std::string(exception.what()));
     }
 }
 
@@ -154,8 +154,8 @@ bool TheNewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
                 Logger::error("Failed to store article from TheNewsApi: " + article.title);
                 allSuccessful = false;
             }
-        } catch (const std::exception& e) {
-            Logger::error("Exception while processing article from TheNewsApi: " + std::string(e.what()));
+        } catch (const std::exception& exception) {
+            Logger::error("Exception while processing article from TheNewsApi: " + std::string(exception.what()));
             allSuccessful = false;
         }
     }
@@ -186,16 +186,16 @@ void TheNewsApi::updateLastAccessed() {
     try {
         auto now = std::chrono::system_clock::now();
         auto in_time_t = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-        std::string timestamp = ss.str();
+        std::stringstream stringStream;
+        stringStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+        std::string timestamp = stringStream.str();
         ExternalServerDao serverDao;
         auto server = serverDao.findByName(getName());
         if (server) {
             serverDao.updateLastAccessed(server->apiId, timestamp);
         }
-    } catch (const std::exception& e) {
-        Logger::error("Error updating last accessed time for TheNewsApi: " + std::string(e.what()));
+    } catch (const std::exception& exception) {
+        Logger::error("Error updating last accessed time for TheNewsApi: " + std::string(exception.what()));
     }
 }
 
@@ -209,7 +209,7 @@ std::string TheNewsApi::convertIsoToMySqlDateTime(const std::string& isoDateTime
     
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-    return ss.str();
+    std::stringstream stringStream;
+    stringStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+    return stringStream.str();
 }

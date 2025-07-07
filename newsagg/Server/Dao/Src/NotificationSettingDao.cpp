@@ -18,20 +18,20 @@ std::vector<std::shared_ptr<NotificationSetting>> NotificationSettingDao::getByU
         }
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery(
             "SELECT userId, categoryId FROM notificationSettings WHERE userId = " + std::to_string(userId)
         ));
         
-        while (res->next()) {
+        while (response->next()) {
             auto setting = std::make_shared<NotificationSetting>();
-            setting->userId = res->getUInt("userId");
-            setting->categoryId = res->getUInt("categoryId");
+            setting->userId = response->getUInt("userId");
+            setting->categoryId = response->getUInt("categoryId");
             settings.push_back(setting);
         }
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return settings;
@@ -49,20 +49,20 @@ std::vector<std::shared_ptr<NotificationSetting>> NotificationSettingDao::getByC
         }
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery(
             "SELECT userId, categoryId FROM notificationSettings WHERE categoryId = " + std::to_string(categoryId)
         ));
         
-        while (res->next()) {
+        while (response->next()) {
             auto setting = std::make_shared<NotificationSetting>();
-            setting->userId = res->getUInt("userId");
-            setting->categoryId = res->getUInt("categoryId");
+            setting->userId = response->getUInt("userId");
+            setting->categoryId = response->getUInt("categoryId");
             settings.push_back(setting);
         }
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return settings;
@@ -86,10 +86,10 @@ bool NotificationSettingDao::add(const NotificationSetting& setting) {
         
         int affectedRows = pstmt->executeUpdate();
         return affectedRows > 0;
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;
@@ -113,10 +113,10 @@ bool NotificationSettingDao::remove(unsigned int userId, unsigned int categoryId
         
         int affectedRows = pstmt->executeUpdate();
         return affectedRows > 0;
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;

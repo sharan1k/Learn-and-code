@@ -11,10 +11,10 @@ public:
     static void registerRoutes(HttpServer& server);
 
 private:
-    static void handleSignup(const httplib::Request& req, httplib::Response& res);
-    static void handleLogin(const httplib::Request& req, httplib::Response& res);
+    static void handleSignup(const httplib::Request& request, httplib::Response& response);
+    static void handleLogin(const httplib::Request& request, httplib::Response& response);
     static UserService& getUserService();
     
-    static void sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status = 200, const std::string& message = "");
-    static void sendErrorResponse(httplib::Response& res, const std::string& message, int status = 500);
+    static void sendSuccessResponse(httplib::Response& response, const nlohmann::json& data, int status = 200, const std::string& message = "");
+    static void sendErrorResponse(httplib::Response& response, const std::string& message, int status = 500);
 };

@@ -100,11 +100,11 @@ bool EmailService::setup_smtp_connection(
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
 
-    CURLcode res = curl_easy_perform(curl);
+    CURLcode response = curl_easy_perform(curl);
     curl_slist_free_all(recipients);
 
-    if (res != CURLE_OK) {
-        std::cerr << "Email send failed: " << curl_easy_strerror(res) << std::endl;
+    if (response != CURLE_OK) {
+        std::cerr << "Email send failed: " << curl_easy_strerror(response) << std::endl;
         return false;
     }
 

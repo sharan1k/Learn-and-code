@@ -5,7 +5,7 @@ UserService& UserController::getUserService() {
     return service;
 }
 
-void UserController::sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status, const std::string& message) {
+void UserController::sendSuccessResponse(httplib::Response& response, const nlohmann::json& data, int status, const std::string& message) {
     nlohmann::json response = {{"status", "success"}};
     
     if (!data.is_null()) {
@@ -20,18 +20,18 @@ void UserController::sendSuccessResponse(httplib::Response& res, const nlohmann:
         response["user"] = data["user"];
     }
     
-    res.status = status;
-    res.set_content(response.dump(), "application/json");
+    response.status = status;
+    response.set_content(response.dump(), "application/json");
 }
 
-void UserController::sendErrorResponse(httplib::Response& res, const std::string& message, int status) {
+void UserController::sendErrorResponse(httplib::Response& response, const std::string& message, int status) {
     nlohmann::json response = {
         {"status", "error"},
         {"message", message}
     };
     
-    res.status = status;
-    res.set_content(response.dump(), "application/json");
+    response.status = status;
+    response.set_content(response.dump(), "application/json");
 }
 
 void UserController::registerRoutes(HttpServer& server) {
@@ -39,13 +39,13 @@ void UserController::registerRoutes(HttpServer& server) {
     server.post("/api/users/login", handleLogin);
 }
 
-void UserController::handleSignup(const httplib::Request& req, httplib::Response& res) {
+void UserController::handleSignup(const httplib::Request& request, httplib::Response& response) {
     try {
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         User newUser = User::fromJson(requestData);
         
         if (!newUser.isValid()) {
-            sendErrorResponse(res, "Invalid user data. User name, email and password are required.", 400);
+            sendErrorResponse(response, "Invalid user data. User name, email and password are required.", 400);
             return;
         }
         
@@ -55,24 +55,24 @@ void UserController::handleSignup(const httplib::Request& req, httplib::Response
         if (success && createdUser != nullptr) {
             nlohmann::json userData;
             userData["user"] = createdUser->toJson();
-            sendSuccessResponse(res, userData, 201, message);
+            sendSuccessResponse(response, userData, 201, message);
         } else {
             int statusCode = message == "Email already registered." || message == "Username already taken." ? 409 : 500;
-            sendErrorResponse(res, message, statusCode);
+            sendErrorResponse(response, message, statusCode);
         }
-    } catch (const nlohmann::json::parse_error& e) {
-        sendErrorResponse(res, "Invalid JSON format: " + std::string(e.what()), 400);
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+    } catch (const nlohmann::json::parse_error& exception) {
+        sendErrorResponse(response, "Invalid JSON format: " + std::string(exception.what()), 400);
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }
 
-void UserController::handleLogin(const httplib::Request& req, httplib::Response& res) {
+void UserController::handleLogin(const httplib::Request& request, httplib::Response& response) {
     try {
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         
         if (!requestData.contains("userName") || !requestData.contains("password")) {
-            sendErrorResponse(res, "Username and password are required.", 400);
+            sendErrorResponse(response, "Username and password are required.", 400);
             return;
         }
         
@@ -84,13 +84,13 @@ void UserController::handleLogin(const httplib::Request& req, httplib::Response&
         if (user != nullptr) {
             nlohmann::json userData;
             userData["user"] = user->toJson();
-            sendSuccessResponse(res, userData, 200, "Login successful.");
+            sendSuccessResponse(response, userData, 200, "Login successful.");
         } else {
-            sendErrorResponse(res, "Invalid username or password.", 401);
+            sendErrorResponse(response, "Invalid username or password.", 401);
         }
-    } catch (const nlohmann::json::parse_error& e) {
-        sendErrorResponse(res, "Invalid JSON format: " + std::string(e.what()), 400);
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+    } catch (const nlohmann::json::parse_error& exception) {
+        sendErrorResponse(response, "Invalid JSON format: " + std::string(exception.what()), 400);
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }

@@ -25,13 +25,13 @@ bool UserDao::createUser(const User& user) {
         pstmt->setString(4, user.role);
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in createUser: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-        std::cerr << "ErrorCode: " << e.getErrorCode() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in createUser: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+        std::cerr << "ErrorCode: " << exception.getErrorCode() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Error in createUser: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in createUser: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -44,22 +44,22 @@ std::shared_ptr<User> UserDao::findById(unsigned int userId) {
             "SELECT * FROM users WHERE userId = ?"
         ));
         pstmt->setUInt(1, userId);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
        
-        if (res->next()) {
+        if (response->next()) {
             auto user = std::make_shared<User>();
-            user->userId = res->getUInt("userId");
-            user->userName = res->getString("userName");
-            user->emailId = res->getString("emailId");
-            user->role = res->getString("role");
+            user->userId = response->getUInt("userId");
+            user->userName = response->getString("userName");
+            user->emailId = response->getString("emailId");
+            user->role = response->getString("role");
             return user;
         }
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findById: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findById: " << exception.what() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Error in findById: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in findById: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -72,22 +72,22 @@ std::shared_ptr<User> UserDao::findByEmail(const std::string& email) {
             "SELECT * FROM users WHERE emailId = ?"
         ));
         pstmt->setString(1, email);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto user = std::make_shared<User>();
-            user->userId = res->getUInt("userId");
-            user->userName = res->getString("userName");
-            user->emailId = res->getString("emailId");
-            user->role = res->getString("role");
+            user->userId = response->getUInt("userId");
+            user->userName = response->getString("userName");
+            user->emailId = response->getString("emailId");
+            user->role = response->getString("role");
             return user;
         }
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findByEmail: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findByEmail: " << exception.what() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Error in findByEmail: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in findByEmail: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -101,22 +101,22 @@ std::shared_ptr<User> UserDao::verifyLogin(const std::string& email, const std::
         ));
         pstmt->setString(1, email);
         pstmt->setString(2, password);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto user = std::make_shared<User>();
-            user->userId = res->getUInt("userId");
-            user->userName = res->getString("userName");
-            user->emailId = res->getString("emailId");
-            user->role = res->getString("role");
+            user->userId = response->getUInt("userId");
+            user->userName = response->getString("userName");
+            user->emailId = response->getString("emailId");
+            user->role = response->getString("role");
             return user;
         }
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in verifyLogin: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in verifyLogin: " << exception.what() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Error in verifyLogin: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in verifyLogin: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -134,11 +134,11 @@ bool UserDao::updateUser(const User& user) {
         pstmt->setUInt(4, user.userId);
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0; 
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in updateUser: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in updateUser: " << exception.what() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Error in updateUser: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in updateUser: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -153,11 +153,11 @@ bool UserDao::deleteUser(unsigned int userId) {
         pstmt->setUInt(1, userId);
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;   
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in deleteUser: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in deleteUser: " << exception.what() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Error in deleteUser: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in deleteUser: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -170,22 +170,22 @@ std::shared_ptr<User> UserDao::findByUserName(const std::string& userName) {
             "SELECT * FROM users WHERE userName = ?"
         ));
         pstmt->setString(1, userName);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto user = std::make_shared<User>();
-            user->userId = res->getUInt("userId");
-            user->userName = res->getString("userName");
-            user->emailId = res->getString("emailId");
-            user->role = res->getString("role");
+            user->userId = response->getUInt("userId");
+            user->userName = response->getString("userName");
+            user->emailId = response->getString("emailId");
+            user->role = response->getString("role");
             return user;
         }
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findByUserName: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findByUserName: " << exception.what() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Error in findByUserName: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in findByUserName: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -199,22 +199,22 @@ std::shared_ptr<User> UserDao::verifyLoginByUsername(const std::string& userName
         ));
         pstmt->setString(1, userName);
         pstmt->setString(2, password);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto user = std::make_shared<User>();
-            user->userId = res->getUInt("userId");
-            user->userName = res->getString("userName");
-            user->emailId = res->getString("emailId");
-            user->role = res->getString("role");
+            user->userId = response->getUInt("userId");
+            user->userName = response->getString("userName");
+            user->emailId = response->getString("emailId");
+            user->role = response->getString("role");
             return user;
         }
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in verifyLoginByUsername: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in verifyLoginByUsername: " << exception.what() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Error in verifyLoginByUsername: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Error in verifyLoginByUsername: " << exception.what() << std::endl;
         return nullptr;
     }
 }

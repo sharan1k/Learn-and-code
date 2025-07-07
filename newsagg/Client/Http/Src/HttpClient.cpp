@@ -28,30 +28,30 @@ bool HttpClient::performRequest(const std::string& method, const std::string& pa
         try {
             std::cout << method << " request to " << path << " (attempt " << (retries + 1) << " of " 
                       << ClientConfig::HTTP_MAX_RETRIES << ")..." << std::endl;
-            auto res = requestFunc();
+            auto response = requestFunc();
             
-            if (res) {
+            if (response) {
                 shouldRetry = false;
                 
-                if (res->status >= 200 && res->status < 300) {
+                if (response->status >= 200 && response->status < 300) {
                     success = true;
-                    std::cout << "Request returned status: " << res->status << std::endl;
+                    std::cout << "Request returned status: " << response->status << std::endl;
                 } else {
-                    std::cout << "Request returned status: " << res->status << std::endl;
+                    std::cout << "Request returned status: " << response->status << std::endl;
                     
-                    if (res->status >= 400 && res->status < 500) {
+                    if (response->status >= 400 && response->status < 500) {
                         if (callback) {
-                            callback(res);
+                            callback(response);
                         }
                         return false;
                     }
                 }
                 
                 if (callback) {
-                    callback(res);
+                    callback(response);
                 }
             } else {
-                std::cout << "Request attempt " << (retries + 1) << " failed with error code: " << res.error() << std::endl;
+                std::cout << "Request attempt " << (retries + 1) << " failed with error code: " << response.error() << std::endl;
                 shouldRetry = true;
             }
             
@@ -63,8 +63,8 @@ bool HttpClient::performRequest(const std::string& method, const std::string& pa
             
             retries++;
             
-        } catch (const std::exception& e) {
-            std::cerr << method << " request exception: " << e.what() << std::endl;
+        } catch (const std::exception& exception) {
+            std::cerr << method << " request exception: " << exception.what() << std::endl;
             retries++;
             if (retries < ClientConfig::HTTP_MAX_RETRIES) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));

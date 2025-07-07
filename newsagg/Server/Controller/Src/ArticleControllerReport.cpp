@@ -2,28 +2,28 @@
 #include "../../Service/Inc/AdminService.h"
 #include "../../Utils/Inc/Logger.h"
 
-void ArticleController::handleReportArticle(const httplib::Request& req, httplib::Response& res) {
+void ArticleController::handleReportArticle(const httplib::Request& request, httplib::Response& response) {
     try {
-        if (req.path_params.find("articleId") == req.path_params.end()) {
-            sendErrorResponse(res, "Article ID is required", 400);
+        if (request.path_params.find("articleId") == request.path_params.end()) {
+            sendErrorResponse(response, "Article ID is required", 400);
             return;
         }
         
-        if (!req.has_param("userId") && !req.body.empty()) {
-            nlohmann::json reqJson = nlohmann::json::parse(req.body);
+        if (!request.has_param("userId") && !request.body.empty()) {
+            nlohmann::json reqJson = nlohmann::json::parse(request.body);
             if (!reqJson.contains("userId")) {
-                sendErrorResponse(res, "User ID is required", 400);
+                sendErrorResponse(response, "User ID is required", 400);
                 return;
             }
         }
         
-        unsigned int articleId = std::stoi(req.path_params.at("articleId"));
+        unsigned int articleId = std::stoi(request.path_params.at("articleId"));
         
         unsigned int userId;
-        if (req.has_param("userId")) {
-            userId = std::stoi(req.get_param_value("userId"));
+        if (request.has_param("userId")) {
+            userId = std::stoi(request.get_param_value("userId"));
         } else {
-            nlohmann::json reqJson = nlohmann::json::parse(req.body);
+            nlohmann::json reqJson = nlohmann::json::parse(request.body);
             userId = reqJson["userId"].get<unsigned int>();
         }
         
@@ -32,12 +32,12 @@ void ArticleController::handleReportArticle(const httplib::Request& req, httplib
         
         if (success) {
             Logger::info("User " + std::to_string(userId) + " reported article " + std::to_string(articleId));
-            sendSuccessResponse(res, nlohmann::json({}), 200, "Article reported successfully");
+            sendSuccessResponse(response, nlohmann::json({}), 200, "Article reported successfully");
         } else {
-            sendErrorResponse(res, "Failed to report article", 500);
+            sendErrorResponse(response, "Failed to report article", 500);
         }
-    } catch (const std::exception& e) {
-        Logger::error("Error in handleReportArticle: " + std::string(e.what()));
-        sendErrorResponse(res, std::string("Error reporting article: ") + e.what(), 500);
+    } catch (const std::exception& exception) {
+        Logger::error("Error in handleReportArticle: " + std::string(exception.what()));
+        sendErrorResponse(response, std::string("Error reporting article: ") + exception.what(), 500);
     }
 }

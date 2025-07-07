@@ -45,9 +45,9 @@ std::vector<Article> NewsApi::fetchNews() {
     try {
         updateLastAccessed();
         Logger::debug("Setting up HTTP client for NewsApi");
-        httplib::SSLClient cli("newsapi.org");
-        cli.set_connection_timeout(5);
-        cli.enable_server_certificate_verification(false);
+        httplib::SSLClient client("newsapi.org");
+        client.set_connection_timeout(5);
+        client.enable_server_certificate_verification(false);
         
         for (const auto& category : categories) {
             std::string apiCategory = category.first;
@@ -55,10 +55,10 @@ std::vector<Article> NewsApi::fetchNews() {
             Logger::info("Fetching news for category: " + displayCategory);
             
             std::string path = "/v2/top-headlines?country=us&category=" + apiCategory + "&apiKey=" + apiKey;
-            auto res = cli.Get(path.c_str());
+            auto response = client.Get(path.c_str());
             
-            if (res && res->status == 200) {
-                nlohmann::json response = nlohmann::json::parse(res->body);
+            if (response && response->status == 200) {
+                nlohmann::json response = nlohmann::json::parse(response->body);
                 
                 if (response.contains("articles") && response["articles"].is_array()) {
                     for (const auto& item : response["articles"]) {
@@ -88,9 +88,9 @@ std::vector<Article> NewsApi::fetchNews() {
                         } else {
                             auto now = std::chrono::system_clock::now();
                             auto in_time_t = std::chrono::system_clock::to_time_t(now);
-                            std::stringstream ss;
-                            ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-                            article.publishedAt = ss.str();
+                            std::stringstream stringStream;
+                            stringStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+                            article.publishedAt = stringStream.str();
                         }
                         
                         articles.push_back(article);
@@ -98,28 +98,28 @@ std::vector<Article> NewsApi::fetchNews() {
                 }
             } else {
                 Logger::error("Error fetching news for category " + displayCategory + " from NewsAPI");
-                if (res) {
-                    Logger::error("Status: " + std::to_string(res->status));
-                    if (res->body.find("message") != std::string::npos) {
+                if (response) {
+                    Logger::error("Status: " + std::to_string(response->status));
+                    if (response->body.find("message") != std::string::npos) {
                         try {
-                            nlohmann::json errorJson = nlohmann::json::parse(res->body);
+                            nlohmann::json errorJson = nlohmann::json::parse(response->body);
                             if (errorJson.contains("message")) {
                                 Logger::error("Error message: " + errorJson["message"].get<std::string>());
                             }
-                        } catch (const std::exception& e) {
-                            Logger::error("Failed to parse error message: " + std::string(e.what()));
+                        } catch (const std::exception& exception) {
+                            Logger::error("Failed to parse error message: " + std::string(exception.what()));
                         }
                     }
                 } else {
-                    auto err = res.error();
+                    auto err = response.error();
                     Logger::error("Error: " + httplib::to_string(err));
                 }
             }
             
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-    } catch (const std::exception& e) {
-        Logger::error("Exception in fetchNews for NewsAPI: " + std::string(e.what()));
+    } catch (const std::exception& exception) {
+        Logger::error("Exception in fetchNews for NewsAPI: " + std::string(exception.what()));
     }
     
     Logger::info("NewsAPI fetch returning " + std::to_string(articles.size()) + " articles");
@@ -150,8 +150,8 @@ void NewsApi::setActive(bool isActive) {
         if (server) {
             serverDao.setApiStatus(server->apiId, active ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE);
         }
-    } catch (const std::exception& e) {
-        Logger::error("Error updating API status for NewsAPI: " + std::string(e.what()));
+    } catch (const std::exception& exception) {
+        Logger::error("Error updating API status for NewsAPI: " + std::string(exception.what()));
     }
 }
 
@@ -213,9 +213,9 @@ void NewsApi::updateLastAccessed() {
     try {
         auto now = std::chrono::system_clock::now();
         auto in_time_t = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-        std::string timestamp = ss.str();
+        std::stringstream stringStream;
+        stringStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+        std::string timestamp = stringStream.str();
         
         ExternalServerDao serverDao;
         auto server = serverDao.findByName(getName());
@@ -223,8 +223,8 @@ void NewsApi::updateLastAccessed() {
             serverDao.updateLastAccessed(server->apiId, timestamp);
             Logger::debug("Updated last accessed time for NewsApi to " + timestamp);
         }
-    } catch (const std::exception& e) {
-        Logger::error("Error updating last accessed time for NewsApi: " + std::string(e.what()));
+    } catch (const std::exception& exception) {
+        Logger::error("Error updating last accessed time for NewsApi: " + std::string(exception.what()));
     }
 }
 
@@ -238,7 +238,7 @@ std::string NewsApi::convertIsoToMySqlDateTime(const std::string& isoDateTime) {
     
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
-    return ss.str();
+    std::stringstream stringStream;
+    stringStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+    return stringStream.str();
 }

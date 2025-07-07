@@ -32,11 +32,11 @@ void AdminHandler::getReportedArticles(ArticleListCallback callback) {
             }
             
             callback(true, "Successfully retrieved reported articles", articles);
-        } catch (const std::exception& e) {
+        } catch (const std::exception& exception) {
             for (auto* article : articles) {
                 delete article;
             }
-            callback(false, "Error processing article data: " + std::string(e.what()), {});
+            callback(false, "Error processing article data: " + std::string(exception.what()), {});
         }
     });
 }
@@ -203,8 +203,8 @@ void AdminHandler::getHiddenArticles(IdListCallback callback) {
             }
             
             callback(true, "Successfully retrieved hidden articles", hiddenArticleIds);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing hidden article data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing hidden article data: " + std::string(exception.what()), {});
         }
     });
 }
@@ -239,8 +239,8 @@ void AdminHandler::getHiddenCategories(IdListCallback callback) {
             }
             
             callback(true, "Successfully retrieved hidden categories", hiddenCategoryIds);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing hidden category data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing hidden category data: " + std::string(exception.what()), {});
         }
     });
 }

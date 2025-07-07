@@ -15,7 +15,7 @@ AdminService& AdminController::getAdminService() {
     return AdminService::getInstance();
 }
 
-void AdminController::sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status, const std::string& message) {
+void AdminController::sendSuccessResponse(httplib::Response& response, const nlohmann::json& data, int status, const std::string& message) {
     nlohmann::json response = {{"status", "success"}};
     
     if (!data.is_null()) {
@@ -26,18 +26,18 @@ void AdminController::sendSuccessResponse(httplib::Response& res, const nlohmann
         response["message"] = message;
     }
     
-    res.status = status;
-    res.set_content(response.dump(), "application/json");
+    response.status = status;
+    response.set_content(response.dump(), "application/json");
 }
 
-void AdminController::sendErrorResponse(httplib::Response& res, const std::string& message, int status) {
+void AdminController::sendErrorResponse(httplib::Response& response, const std::string& message, int status) {
     nlohmann::json response = {
         {"status", "error"},
         {"message", message}
     };
     
-    res.status = status;
-    res.set_content(response.dump(), "application/json");
+    response.status = status;
+    response.set_content(response.dump(), "application/json");
 }
 
 void AdminController::registerRoutes(HttpServer& server) {
@@ -54,7 +54,7 @@ void AdminController::registerRoutes(HttpServer& server) {
     server.get("/api/admin/hidden-categories", handleGetHiddenCategories);
 }
 
-void AdminController::handleGetExternalServers(const httplib::Request& req, httplib::Response& res) {
+void AdminController::handleGetExternalServers(const httplib::Request& request, httplib::Response& response) {
     try {
         auto& service = getExternalServerService();
         auto servers = service.getAllExternalServers();
@@ -64,49 +64,49 @@ void AdminController::handleGetExternalServers(const httplib::Request& req, http
             responseJson.push_back(server->toJson());
         }
         
-        sendSuccessResponse(res, responseJson);
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+        sendSuccessResponse(response, responseJson);
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }
 
-void AdminController::handleGetExternalServerById(const httplib::Request& req, httplib::Response& res) {
+void AdminController::handleGetExternalServerById(const httplib::Request& request, httplib::Response& response) {
     try {
-        if (!req.has_param("id")) {
-            sendErrorResponse(res, "Server ID parameter is required", 400);
+        if (!request.has_param("id")) {
+            sendErrorResponse(response, "Server ID parameter is required", 400);
             return;
         }
         
-        unsigned int serverId = std::stoi(req.path_params.at("id"));
+        unsigned int serverId = std::stoi(request.path_params.at("id"));
         
         auto& service = getExternalServerService();
         auto server = service.getExternalServerById(serverId);
         
         if (!server) {
-            sendErrorResponse(res, "External server not found", 404);
+            sendErrorResponse(response, "External server not found", 404);
             return;
         }
         
-        sendSuccessResponse(res, server->toJson());
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+        sendSuccessResponse(response, server->toJson());
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }
 
-void AdminController::handleUpdateExternalServer(const httplib::Request& req, httplib::Response& res) {
+void AdminController::handleUpdateExternalServer(const httplib::Request& request, httplib::Response& response) {
     try {
-        if (req.path_params.find("id") == req.path_params.end()) {
-            sendErrorResponse(res, "Server ID parameter is required in URL path", 400);
+        if (request.path_params.find("id") == request.path_params.end()) {
+            sendErrorResponse(response, "Server ID parameter is required in URL path", 400);
             return;
         }
         
-        unsigned int serverId = std::stoi(req.path_params.at("id"));
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        unsigned int serverId = std::stoi(request.path_params.at("id"));
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         auto& service = getExternalServerService();
         
         auto existingServer = service.getExternalServerById(serverId);
         if (!existingServer) {
-            sendErrorResponse(res, "External server not found", 404);
+            sendErrorResponse(response, "External server not found", 404);
             return;
         }
         
@@ -121,25 +121,25 @@ void AdminController::handleUpdateExternalServer(const httplib::Request& req, ht
         
         bool updated = service.updateExternalServer(*existingServer);
         if (!updated) {
-            sendErrorResponse(res, "Failed to update external server", 500);
+            sendErrorResponse(response, "Failed to update external server", 500);
             return;
         }
         
-        sendSuccessResponse(res, existingServer->toJson(), 200, "External server updated successfully");
-    } catch (const nlohmann::json::parse_error& e) {
-        sendErrorResponse(res, "Invalid JSON format: " + std::string(e.what()), 400);
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+        sendSuccessResponse(response, existingServer->toJson(), 200, "External server updated successfully");
+    } catch (const nlohmann::json::parse_error& exception) {
+        sendErrorResponse(response, "Invalid JSON format: " + std::string(exception.what()), 400);
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }
 
-void AdminController::handleAddCategory(const httplib::Request& req, httplib::Response& res) {
+void AdminController::handleAddCategory(const httplib::Request& request, httplib::Response& response) {
     try {
-        nlohmann::json requestData = nlohmann::json::parse(req.body);
+        nlohmann::json requestData = nlohmann::json::parse(request.body);
         Category newCategory = Category::fromJson(requestData);
         
         if (!newCategory.isValid()) {
-            sendErrorResponse(res, "Invalid category data. Category name is required.", 400);
+            sendErrorResponse(response, "Invalid category data. Category name is required.", 400);
             return;
         }
         
@@ -147,26 +147,26 @@ void AdminController::handleAddCategory(const httplib::Request& req, httplib::Re
         
         auto existingCategory = service.getCategoryByName(newCategory.categoryName);
         if (existingCategory) {
-            sendErrorResponse(res, "Category with this name already exists.", 409);
+            sendErrorResponse(response, "Category with this name already exists.", 409);
             return;
         }
         
         bool created = service.createCategory(newCategory);
         if (!created) {
-            sendErrorResponse(res, "Failed to create category", 500);
+            sendErrorResponse(response, "Failed to create category", 500);
             return;
         }
         
         auto createdCategory = service.getCategoryByName(newCategory.categoryName);
         if (!createdCategory) {
-            sendErrorResponse(res, "Category was created but couldn't be retrieved", 500);
+            sendErrorResponse(response, "Category was created but couldn't be retrieved", 500);
             return;
         }
         
-        sendSuccessResponse(res, createdCategory->toJson(), 201, "Category created successfully");
-    } catch (const nlohmann::json::parse_error& e) {
-        sendErrorResponse(res, "Invalid JSON format: " + std::string(e.what()), 400);
-    } catch (const std::exception& e) {
-        sendErrorResponse(res, "Server error: " + std::string(e.what()));
+        sendSuccessResponse(response, createdCategory->toJson(), 201, "Category created successfully");
+    } catch (const nlohmann::json::parse_error& exception) {
+        sendErrorResponse(response, "Invalid JSON format: " + std::string(exception.what()), 400);
+    } catch (const std::exception& exception) {
+        sendErrorResponse(response, "Server error: " + std::string(exception.what()));
     }
 }

@@ -25,11 +25,7 @@ public:
     void getExternalServerDetails(int serverId, ServerDetailsCallback callback);
     void updateExternalServer(const ExternalServer& server, StatusCallback callback);
     void addCategory(const std::string& categoryName, StatusCallback callback);
-    
-    // Reported article management
-    void getReportedArticles(ArticleListCallback callback);
-    
-    // Article and category hiding management
+    void getReportedArticles(ArticleListCallback callback);    
     void hideArticle(unsigned int articleId, StatusCallback callback);
     void unhideArticle(unsigned int articleId, StatusCallback callback);
     void hideCategory(unsigned int categoryId, StatusCallback callback);

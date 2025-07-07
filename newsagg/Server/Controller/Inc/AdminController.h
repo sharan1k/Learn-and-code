@@ -16,22 +16,22 @@ public:
     static void registerRoutes(HttpServer& server);
 
 private:
-    static void handleGetExternalServers(const httplib::Request& req, httplib::Response& res);
-    static void handleGetExternalServerById(const httplib::Request& req, httplib::Response& res);
-    static void handleUpdateExternalServer(const httplib::Request& req, httplib::Response& res);
-    static void handleAddCategory(const httplib::Request& req, httplib::Response& res);
-    static void handleGetReportedArticles(const httplib::Request& req, httplib::Response& res);
-    static void handleHideArticle(const httplib::Request& req, httplib::Response& res);
-    static void handleUnhideArticle(const httplib::Request& req, httplib::Response& res);
-    static void handleHideCategory(const httplib::Request& req, httplib::Response& res);
-    static void handleUnhideCategory(const httplib::Request& req, httplib::Response& res);
-    static void handleGetHiddenArticles(const httplib::Request& req, httplib::Response& res);
-    static void handleGetHiddenCategories(const httplib::Request& req, httplib::Response& res);
+    static void handleGetExternalServers(const httplib::Request& request, httplib::Response& response);
+    static void handleGetExternalServerById(const httplib::Request& request, httplib::Response& response);
+    static void handleUpdateExternalServer(const httplib::Request& request, httplib::Response& response);
+    static void handleAddCategory(const httplib::Request& request, httplib::Response& response);
+    static void handleGetReportedArticles(const httplib::Request& request, httplib::Response& response);
+    static void handleHideArticle(const httplib::Request& request, httplib::Response& response);
+    static void handleUnhideArticle(const httplib::Request& request, httplib::Response& response);
+    static void handleHideCategory(const httplib::Request& request, httplib::Response& response);
+    static void handleUnhideCategory(const httplib::Request& request, httplib::Response& response);
+    static void handleGetHiddenArticles(const httplib::Request& request, httplib::Response& response);
+    static void handleGetHiddenCategories(const httplib::Request& request, httplib::Response& response);
     
     static ExternalServerService& getExternalServerService();
     static CategoryService& getCategoryService();
     static AdminService& getAdminService();
     
-    static void sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status = 200, const std::string& message = "");
-    static void sendErrorResponse(httplib::Response& res, const std::string& message, int status = 500);
+    static void sendSuccessResponse(httplib::Response& response, const nlohmann::json& data, int status = 200, const std::string& message = "");
+    static void sendErrorResponse(httplib::Response& response, const std::string& message, int status = 500);
 };

@@ -33,13 +33,13 @@ void initDbConnection() {
     try {
         DbConnection::initDbConnection(dbHost, dbUser, Config::DATABASE_PASSWORD, dbSchema);
         Logger::info("Database connection initialized successfully");
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException: " + std::string(e.what()));
-        Logger::error("SQLState: " + std::string(e.getSQLState()));
-        Logger::error("ErrorCode: " + std::to_string(e.getErrorCode()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException: " + std::string(exception.what()));
+        Logger::error("SQLState: " + std::string(exception.getSQLState()));
+        Logger::error("ErrorCode: " + std::to_string(exception.getErrorCode()));
         Logger::warning("Server will continue without database connectivity");
-    } catch (std::exception &e) {
-        Logger::error("Error: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Error: " + std::string(exception.what()));
         Logger::warning("Server will continue without database connectivity");
     }
 }
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
         try {
             port = std::stoi(argv[1]);
             Logger::info("Using custom port: " + std::to_string(port));
-        } catch (const std::exception& e) {
+        } catch (const std::exception& exception) {
             Logger::error("Invalid port number: " + std::string(argv[1]));
             Logger::error("Server will exit due to invalid port configuration");
             return 1;
@@ -91,12 +91,12 @@ int main(int argc, char** argv) {
     Logger::info("Email service initialized");
     
     Logger::info("Setting up health check endpoint...");
-    server.get("/api/health", [](const httplib::Request& req, httplib::Response& res) {
+    server.get("/api/health", [](const httplib::Request& request, httplib::Response& response) {
         nlohmann::json healthStatus = {
             {"status", "ok"},
             {"serverTime", std::to_string(std::time(nullptr))}
         };
-        res.set_content(healthStatus.dump(), "application/json");    
+        response.set_content(healthStatus.dump(), "application/json");    
     });
     Logger::info("Health check endpoint configured");
     

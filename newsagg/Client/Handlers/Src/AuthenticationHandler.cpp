@@ -52,9 +52,9 @@ nlohmann::json AuthenticationHandler::parseResponse(
             errorMessage = response.value("message", "Unknown error");
             return response;
         }
-    } catch (const std::exception& e) {
+    } catch (const std::exception& exception) {
         success = false;
-        errorMessage = "Error parsing server response: " + std::string(e.what());
+        errorMessage = "Error parsing server response: " + std::string(exception.what());
         return nlohmann::json();
     }
 }
@@ -97,8 +97,8 @@ void AuthenticationHandler::login(
             } else {
                 callback(true, responseJson.value("message", "Login successful"), nullptr);
             }
-        } catch (const std::exception& e) {
-            callback(false, "Error processing login response: " + std::string(e.what()), nullptr);
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing login response: " + std::string(exception.what()), nullptr);
         }
     });
 }
@@ -143,8 +143,8 @@ void AuthenticationHandler::signup(
             } else {
                 callback(true, responseJson.value("message", "Registration successful"), nullptr);
             }
-        } catch (const std::exception& e) {
-            callback(false, "Error processing registration response: " + std::string(e.what()), nullptr);
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing registration response: " + std::string(exception.what()), nullptr);
         }
     });
 }

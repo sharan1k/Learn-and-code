@@ -32,20 +32,20 @@ bool ArticleDao::createArticle(const Article& article, unsigned int* outArticleI
         
         if (outArticleId != nullptr && rowsAffected > 0) {
             std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
+            std::unique_ptr<sql::ResultSet> response(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
             
-            if (res->next()) {
-                *outArticleId = res->getUInt(1);
+            if (response->next()) {
+                *outArticleId = response->getUInt(1);
             }
         }
         
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in createArticle: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in createArticle: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in createArticle: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in createArticle: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -60,27 +60,27 @@ std::shared_ptr<Article> ArticleDao::findById(unsigned int articleId) {
         ));
         
         pstmt->setUInt(1, articleId);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
+        if (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             return article;
         }
         
         return nullptr;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findById: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findById: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return nullptr;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findById: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in findById: " << exception.what() << std::endl;
         return nullptr;
     }
 }
@@ -101,24 +101,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::findByCategory(unsigned int ca
         ));
         
         pstmt->setUInt(1, categoryId);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findByCategory: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findByCategory: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in findByCategory: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in findByCategory: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -139,24 +139,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getLatestArticles(int limit) {
         ));
         
         pstmt->setInt(1, limit);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getLatestArticles: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getLatestArticles: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getLatestArticles: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getLatestArticles: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -172,19 +172,19 @@ bool ArticleDao::articleExists(const std::string& url) {
         ));
         
         pstmt->setString(1, url);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
-            return res->getUInt("count") > 0;
+        if (response->next()) {
+            return response->getUInt("count") > 0;
         }
         
         return false;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in articleExists: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in articleExists: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in articleExists: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in articleExists: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -205,24 +205,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getArticlesByDate(const std::s
         
         pstmt->setString(1, date + "%");
         pstmt->setInt(2, limit);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getArticlesByDate: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getArticlesByDate: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getArticlesByDate: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getArticlesByDate: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -244,24 +244,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getArticlesByDateRange(
         pstmt->setString(1, startDate); 
         pstmt->setString(2, endDate + " 23:59:59"); 
         pstmt->setInt(3, limit);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getArticlesByDateRange: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getArticlesByDateRange: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getArticlesByDateRange: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getArticlesByDateRange: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -283,24 +283,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getArticlesByDateAndCategory(
         pstmt->setString(1, date + "%"); 
         pstmt->setUInt(2, categoryId);
         pstmt->setInt(3, limit);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getArticlesByDateAndCategory: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getArticlesByDateAndCategory: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getArticlesByDateAndCategory: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getArticlesByDateAndCategory: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -324,24 +324,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getArticlesByDateRangeAndCateg
         pstmt->setString(2, endDate + " 23:59:59"); 
         pstmt->setUInt(3, categoryId);
         pstmt->setInt(4, limit);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getArticlesByDateRangeAndCategory: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getArticlesByDateRangeAndCategory: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getArticlesByDateRangeAndCategory: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getArticlesByDateRangeAndCategory: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -367,24 +367,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticles(const std::stri
         pstmt->setString(2, likePattern);
         pstmt->setInt(3, limit);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in searchArticles: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in searchArticles: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in searchArticles: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in searchArticles: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -415,24 +415,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticlesByDateRange(
         pstmt->setString(4, endDate);
         pstmt->setInt(5, limit);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in searchArticlesByDateRange: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in searchArticlesByDateRange: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in searchArticlesByDateRange: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in searchArticlesByDateRange: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -476,24 +476,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticlesSortedByLikes(
         pstmt->setString(2, likePattern);
         pstmt->setInt(3, limit);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in searchArticlesSortedByLikes: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in searchArticlesSortedByLikes: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in searchArticlesSortedByLikes: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in searchArticlesSortedByLikes: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -541,24 +541,24 @@ std::vector<std::shared_ptr<Article>> ArticleDao::searchArticlesByDateRangeSorte
         pstmt->setString(4, endDate);
         pstmt->setInt(5, limit);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in searchArticlesByDateRangeSortedByLikes: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in searchArticlesByDateRangeSortedByLikes: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in searchArticlesByDateRangeSortedByLikes: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in searchArticlesByDateRangeSortedByLikes: " << exception.what() << std::endl;
     }
     
     return articles;

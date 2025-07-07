@@ -17,8 +17,8 @@ DbConnection::~DbConnection() {
     try {
       connection->close();
       std::cout << "Database connection closed." << std::endl;
-    } catch (sql::SQLException &e) {
-      std::cerr << "Error closing database connection: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+      std::cerr << "Error closing database connection: " << exception.what() << std::endl;
     }
     connection = nullptr;
   }
@@ -39,13 +39,13 @@ void DbConnection::initDbConnection(const std::string &hostName,
     connection.reset(driver->connect(hostName, userName, password));
     connection->setSchema(schemaName);
     std::cout << "Database connection established successfully." << std::endl;
-  } catch (sql::SQLException &e) {
-    std::cerr << "SQLException: " << e.what() << std::endl;
-    std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    std::cerr << "ErrorCode: " << e.getErrorCode() << std::endl;
+  } catch (sql::SQLException &exception) {
+    std::cerr << "SQLException: " << exception.what() << std::endl;
+    std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    std::cerr << "ErrorCode: " << exception.getErrorCode() << std::endl;
     throw; 
-  } catch (std::exception &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+  } catch (std::exception &exception) {
+    std::cerr << "Error: " << exception.what() << std::endl;
     throw;
   }
 }

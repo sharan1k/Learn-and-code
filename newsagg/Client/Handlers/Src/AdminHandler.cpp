@@ -50,9 +50,9 @@ nlohmann::json AdminHandler::parseResponse(
             errorMessage = response.value("message", "Unknown error");
             return nlohmann::json();
         }
-    } catch (const std::exception& e) {
+    } catch (const std::exception& exception) {
         success = false;
-        errorMessage = "Error parsing server response: " + std::string(e.what());
+        errorMessage = "Error parsing server response: " + std::string(exception.what());
         return nlohmann::json();
     }
 }
@@ -86,8 +86,8 @@ void AdminHandler::getExternalServers(ServerListCallback callback) {
             }
             
             callback(true, "Successfully retrieved external servers", servers);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing server data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing server data: " + std::string(exception.what()), {});
         }
     });
 }
@@ -123,8 +123,8 @@ void AdminHandler::getExternalServerDetails(int serverId, ServerDetailsCallback 
         try {
             ExternalServer server = ExternalServer::fromJson(response["data"]);
             callback(true, "Successfully retrieved server details", server);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing server data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing server data: " + std::string(exception.what()), {});
         }
     });
 }

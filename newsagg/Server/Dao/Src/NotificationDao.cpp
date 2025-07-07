@@ -18,21 +18,21 @@ std::vector<std::shared_ptr<Notification>> NotificationDao::getNotificationsByUs
         }
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery(
             "SELECT userId, articleId, seenStatus FROM notification WHERE userId = " + std::to_string(userId)
         ));
         
-        while (res->next()) {
+        while (response->next()) {
             auto notification = std::make_shared<Notification>();
-            notification->userId = res->getUInt("userId");
-            notification->articleId = res->getUInt("articleId");
-            notification->seenStatus = res->getString("seenStatus");
+            notification->userId = response->getUInt("userId");
+            notification->articleId = response->getUInt("articleId");
+            notification->seenStatus = response->getString("seenStatus");
             notifications.push_back(notification);
         }
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return notifications;
@@ -57,10 +57,10 @@ bool NotificationDao::add(const Notification& notification) {
         
         int affectedRows = pstmt->executeUpdate();
         return affectedRows > 0;
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;
@@ -83,10 +83,10 @@ bool NotificationDao::markAllAsSeen(unsigned int userId) {
         
         int affectedRows = pstmt->executeUpdate();
         return true; 
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;
@@ -110,10 +110,10 @@ bool NotificationDao::remove(unsigned int userId, unsigned int articleId) {
         
         int affectedRows = pstmt->executeUpdate();
         return affectedRows > 0;
-    } catch (sql::SQLException& e) {
-        std::cerr << "SQL Exception: " << e.what() << std::endl;
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+    } catch (sql::SQLException& exception) {
+        std::cerr << "SQL Exception: " << exception.what() << std::endl;
+    } catch (std::exception& exception) {
+        std::cerr << "Exception: " << exception.what() << std::endl;
     }
     
     return false;

@@ -30,12 +30,12 @@ bool SavedArticleDao::saveArticle(const SavedArticle& savedArticle) {
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in saveArticle: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in saveArticle: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in saveArticle: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in saveArticle: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -52,19 +52,19 @@ bool SavedArticleDao::isArticleSavedByUser(unsigned int userId, unsigned int art
         pstmt->setUInt(1, userId);
         pstmt->setUInt(2, articleId);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        if (res->next()) {
-            return res->getUInt("count") > 0;
+        if (response->next()) {
+            return response->getUInt("count") > 0;
         }
         
         return false;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in isArticleSavedByUser: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in isArticleSavedByUser: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in isArticleSavedByUser: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in isArticleSavedByUser: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -83,24 +83,24 @@ std::vector<std::shared_ptr<Article>> SavedArticleDao::getSavedArticlesByUser(un
         ));
         
         pstmt->setUInt(1, userId);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(pstmt->executeQuery());
         
-        while (res->next()) {
+        while (response->next()) {
             auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             articles.push_back(article);
         }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in getSavedArticlesByUser: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in getSavedArticlesByUser: " << e.what() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in getSavedArticlesByUser: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in getSavedArticlesByUser: " << exception.what() << std::endl;
     }
     
     return articles;
@@ -109,12 +109,12 @@ std::vector<std::shared_ptr<Article>> SavedArticleDao::getSavedArticlesByUser(un
 bool SavedArticleDao::updateSavedArticle(const SavedArticle& savedArticle) {
     try {
         return isArticleSavedByUser(savedArticle.userId, savedArticle.articleId);
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in updateSavedArticle: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in updateSavedArticle: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in updateSavedArticle: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in updateSavedArticle: " << exception.what() << std::endl;
         return false;
     }
 }
@@ -133,12 +133,12 @@ bool SavedArticleDao::removeSavedArticle(unsigned int userId, unsigned int artic
         
         int rowsAffected = pstmt->executeUpdate();
         return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in removeSavedArticle: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
+    } catch (sql::SQLException &exception) {
+        std::cerr << "SQLException in removeSavedArticle: " << exception.what() << std::endl;
+        std::cerr << "SQLState: " << exception.getSQLState() << std::endl;
         return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in removeSavedArticle: " << e.what() << std::endl;
+    } catch (std::exception &exception) {
+        std::cerr << "Exception in removeSavedArticle: " << exception.what() << std::endl;
         return false;
     }
 }

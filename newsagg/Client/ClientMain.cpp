@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     if (argc >= 3) {
         try {
             port = std::stoi(argv[2]);
-        } catch (const std::exception& e) {
+        } catch (const std::exception& exception) {
             std::cerr << "Invalid port number: " << argv[2] << std::endl;
             return 1;
         }
@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
     try {
         ClientApplication app(host, port);
         app.start();
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+    } catch (const std::exception& exception) {
+        std::cerr << "Error: " << exception.what() << std::endl;
         return 1;
     } catch (...) {
         std::cerr << "Unknown error occurred. Please check your network connection." << std::endl;

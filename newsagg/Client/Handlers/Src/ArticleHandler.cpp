@@ -52,9 +52,9 @@ nlohmann::json ArticleHandler::parseResponse(
             errorMessage = response.value("message", "Unknown error");
             return nlohmann::json();
         }
-    } catch (const std::exception& e) {
+    } catch (const std::exception& exception) {
         success = false;
-        errorMessage = "Error parsing server response: " + std::string(e.what());
+        errorMessage = "Error parsing server response: " + std::string(exception.what());
         return nlohmann::json();
     }
 }
@@ -87,8 +87,8 @@ void ArticleHandler::getTodayHeadlines(int limit, HeadlinesCallback callback) {
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch today's headlines: " + response;
@@ -129,8 +129,8 @@ void ArticleHandler::getHeadlinesByDateRange(const std::string& startDate, const
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch headlines by date range: " + response;
@@ -171,8 +171,8 @@ void ArticleHandler::getHeadlinesByCategory(unsigned int categoryId, int limit, 
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch headlines by category: " + response;
@@ -213,8 +213,8 @@ void ArticleHandler::getHeadlinesByDateRangeAndCategory(const std::string& start
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch headlines by date range and category: " + response;
@@ -248,8 +248,8 @@ void ArticleHandler::getArticleDetails(unsigned int articleId, ArticleDetailsCal
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch article details: " + response;
@@ -288,8 +288,8 @@ void ArticleHandler::getCategories(CategoriesCallback callback) {
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch categories: " + response;
@@ -324,8 +324,8 @@ void ArticleHandler::saveArticle(unsigned int userId, unsigned int articleId, St
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to save article: " + response;
@@ -356,8 +356,8 @@ void ArticleHandler::removeSavedArticle(unsigned int userId, unsigned int articl
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to remove saved article: " + response;
@@ -394,8 +394,8 @@ void ArticleHandler::getSavedArticles(unsigned int userId, SavedArticlesCallback
                 } else {
                     message = responseJson["message"];
                 }
-            } catch (const std::exception& e) {
-                message = "Failed to parse response: " + std::string(e.what());
+            } catch (const std::exception& exception) {
+                message = "Failed to parse response: " + std::string(exception.what());
             }
         } else {
             message = "Failed to fetch saved articles: " + response;
@@ -452,8 +452,8 @@ void ArticleHandler::searchArticles(const std::string& query, int limit,
                     } else {
                         message = responseJson["message"];
                     }
-                } catch (const std::exception& e) {
-                    message = "Failed to parse response: " + std::string(e.what());
+                } catch (const std::exception& exception) {
+                    message = "Failed to parse response: " + std::string(exception.what());
                 }
             } else {
                 message = "Server returned error code: " + std::to_string(result->status);
@@ -499,9 +499,9 @@ void ArticleHandler::likeArticle(unsigned int userId, unsigned int articleId, St
                     }
                 }
             }
-        } catch (const std::exception& e) {
+        } catch (const std::exception& exception) {
             success = false;
-            message = "Error processing response: " + std::string(e.what());
+            message = "Error processing response: " + std::string(exception.what());
         }
 
         if (callback) {
@@ -536,9 +536,9 @@ void ArticleHandler::dislikeArticle(unsigned int userId, unsigned int articleId,
                     }
                 }
             }
-        } catch (const std::exception& e) {
+        } catch (const std::exception& exception) {
             success = false;
-            message = "Error processing response: " + std::string(e.what());
+            message = "Error processing response: " + std::string(exception.what());
         }
 
         if (callback) {

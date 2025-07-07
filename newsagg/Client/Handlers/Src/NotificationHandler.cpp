@@ -52,9 +52,9 @@ nlohmann::json NotificationHandler::parseResponse(
             errorMessage = response.value("message", "Unknown error");
             return nlohmann::json();
         }
-    } catch (const std::exception& e) {
+    } catch (const std::exception& exception) {
         success = false;
-        errorMessage = "Error parsing server response: " + std::string(e.what());
+        errorMessage = "Error parsing server response: " + std::string(exception.what());
         return nlohmann::json();
     }
 }
@@ -90,8 +90,8 @@ void NotificationHandler::getNotifications(unsigned int userId, NotificationsCal
             }
             
             callback(true, response.value("message", "Notifications retrieved successfully"), notifications);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing notifications data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing notifications data: " + std::string(exception.what()), {});
         }
     });
 }
@@ -153,8 +153,8 @@ void NotificationHandler::getNotificationSettings(unsigned int userId, SettingsC
             }
             
             callback(true, response.value("message", "Settings retrieved successfully"), settings);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing settings data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing settings data: " + std::string(exception.what()), {});
         }
     });
 }
@@ -228,8 +228,8 @@ void NotificationHandler::getKeywords(unsigned int userId, KeywordsCallback call
             }
             
             callback(true, response.value("message", "Keywords retrieved successfully"), keywords);
-        } catch (const std::exception& e) {
-            callback(false, "Error processing keywords data: " + std::string(e.what()), {});
+        } catch (const std::exception& exception) {
+            callback(false, "Error processing keywords data: " + std::string(exception.what()), {});
         }
     });
 }

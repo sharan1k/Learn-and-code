@@ -24,11 +24,11 @@ bool ReportedArticleDao::reportArticle(unsigned int userId, unsigned int article
         int result = stmt->executeUpdate();
         Logger::info("Article " + std::to_string(articleId) + " reported by user " + std::to_string(userId));
         return result > 0;
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in ReportedArticleDao::reportArticle: " + std::string(e.what()));
+    } catch (sql::SQLException &exceptionxception) {
+        Logger::error("SQLException in ReportedArticleDao::reportArticle: " + std::string(exception.what()));
         return false;
-    } catch (std::exception &e) {
-        Logger::error("Exception in ReportedArticleDao::reportArticle: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in ReportedArticleDao::reportArticle: " + std::string(exception.what()));
         return false;
     }
 }
@@ -46,11 +46,11 @@ bool ReportedArticleDao::markReportAsSeen(unsigned int userId, unsigned int arti
         
         int result = stmt->executeUpdate();
         return result > 0;
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in ReportedArticleDao::markReportAsSeen: " + std::string(e.what()));
+    } catch (sql::SQLException &exceptionxception) {
+        Logger::error("SQLException in ReportedArticleDao::markReportAsSeen: " + std::string(exception.what()));
         return false;
-    } catch (std::exception &e) {
-        Logger::error("Exception in ReportedArticleDao::markReportAsSeen: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in ReportedArticleDao::markReportAsSeen: " + std::string(exception.what()));
         return false;
     }
 }
@@ -67,28 +67,28 @@ std::vector<std::shared_ptr<Article>> ReportedArticleDao::getUnseenReportedArtic
             "WHERE ra.seenStatus = 'unseen'"
         ));
         
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery());
         
         ArticleDao articleDao;
         
-        while (res->next()) {
+        while (response->next()) {
             std::shared_ptr<Article> article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
+            article->articleId = response->getUInt("articleId");
+            article->title = response->getString("title");
+            article->description = response->getString("description");
+            article->source = response->getString("source");
+            article->url = response->getString("url");
+            article->categoryId = response->getUInt("categoryId");
+            article->publishedAt = response->getString("publishedAt");
             
             articles.push_back(article);
         }
         
         Logger::info("Retrieved " + std::to_string(articles.size()) + " unseen reported articles");
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in ReportedArticleDao::getUnseenReportedArticles: " + std::string(e.what()));
-    } catch (std::exception &e) {
-        Logger::error("Exception in ReportedArticleDao::getUnseenReportedArticles: " + std::string(e.what()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException in ReportedArticleDao::getUnseenReportedArticles: " + std::string(exception.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in ReportedArticleDao::getUnseenReportedArticles: " + std::string(exception.what()));
     }
     
     return articles;
@@ -103,18 +103,18 @@ int ReportedArticleDao::getReportCountForArticle(unsigned int articleId) {
         ));
         
         stmt->setUInt(1, articleId);
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+        std::unique_ptr<sql::ResultSet> response(stmt->executeQuery());
         
-        if (res->next()) {
-            return res->getInt("reportCount");
+        if (response->next()) {
+            return response->getInt("reportCount");
         }
         
         return 0;
-    } catch (sql::SQLException &e) {
-        Logger::error("SQLException in ReportedArticleDao::getReportCountForArticle: " + std::string(e.what()));
+    } catch (sql::SQLException &exception) {
+        Logger::error("SQLException in ReportedArticleDao::getReportCountForArticle: " + std::string(exception.what()));
         return 0;
-    } catch (std::exception &e) {
-        Logger::error("Exception in ReportedArticleDao::getReportCountForArticle: " + std::string(e.what()));
+    } catch (std::exception &exception) {
+        Logger::error("Exception in ReportedArticleDao::getReportCountForArticle: " + std::string(exception.what()));
         return 0;
     }
 }
