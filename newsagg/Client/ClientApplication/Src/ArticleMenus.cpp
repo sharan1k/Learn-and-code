@@ -157,17 +157,18 @@ void ClientApplication::displayHeadlines(const std::vector<Article*>& articles) 
             std::cout << "1. Save Article" << std::endl;
             std::cout << "2. Like Article" << std::endl;
             std::cout << "3. Dislike Article" << std::endl;
+            std::cout << "4. Report Article" << std::endl;
             
             if (endIdx < static_cast<int>(articles.size())) {
-                std::cout << "4. Next Page" << std::endl;
+                std::cout << "5. Next Page" << std::endl;
             }
             
             if (startIdx > 0) {
-                std::cout << "5. Previous Page" << std::endl;
+                std::cout << "6. Previous Page" << std::endl;
             }
             
-            std::cout << "6. Back" << std::endl;
-            std::cout << "7. Logout" << std::endl;
+            std::cout << "7. Back" << std::endl;
+            std::cout << "8. Logout" << std::endl;
             std::cout << "=====================================" << std::endl;
             
             std::string choice = getInput("Enter your choice: ");
@@ -181,13 +182,16 @@ void ClientApplication::displayHeadlines(const std::vector<Article*>& articles) 
             } else if (choice == "3") {
                 unsigned int articleId = getIntInput("Enter article ID to dislike: ");
                 dislikeArticle(articleId);
-            } else if (choice == "4" && endIdx < static_cast<int>(articles.size())) {
+            } else if (choice == "4") {
+                unsigned int articleId = getIntInput("Enter article ID to report: ");
+                reportArticle(articleId);
+            } else if (choice == "5" && endIdx < static_cast<int>(articles.size())) {
                 startIdx = endIdx;
-            } else if (choice == "5" && startIdx > 0) {
+            } else if (choice == "6" && startIdx > 0) {
                 startIdx = std::max(0, startIdx - 10);
-            } else if (choice == "6") {
-                viewingHeadlines = false;
             } else if (choice == "7") {
+                viewingHeadlines = false;
+            } else if (choice == "8") {
                 handleLogout();
                 viewingHeadlines = false;
             } else {

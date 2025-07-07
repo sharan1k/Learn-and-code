@@ -22,17 +22,22 @@ add_library(httpclient
 add_library(handlers
     Handlers/Src/AuthenticationHandler.cpp
     Handlers/Src/AdminHandler.cpp
+    Handlers/Src/AdminHandlerHidden.cpp
     Handlers/Src/ArticleHandler.cpp
+    Handlers/Src/ArticleHandlerReport.cpp
     Handlers/Src/NotificationHandler.cpp
 )
 
 # Client Application library
 add_library(clientapp
     ClientApplication/Src/ClientApplication.cpp
-    ClientApplication/Src/date_time_helpers.cpp
-    ClientApplication/Src/ui_helpers.cpp
-    ClientApplication/Src/article_menus.cpp
-    ClientApplication/Src/notification_menus.cpp
+    ClientApplication/Src/DateTimeUtility.cpp
+    ClientApplication/Src/UIHelpers.cpp
+    ClientApplication/Src/ArticleMenus.cpp
+    ClientApplication/Src/NotificationMenus.cpp
+    ClientApplication/Src/ReportArticle.cpp
+    ClientApplication/Src/ContentModerationMenus.cpp
+    ClientApplication/Src/ContentModerationUtility.cpp
 )
 
 # Include directories
@@ -55,7 +60,7 @@ target_include_directories(clientapp PUBLIC
 )
 
 # Create client executable
-add_executable(newsagg_client client_main.cpp)
+add_executable(newsagg_client ClientMain.cpp)
 
 # Link libraries
 target_link_libraries(handlers

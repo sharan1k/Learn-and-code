@@ -48,6 +48,7 @@ private:
     void saveArticle(unsigned int articleId);
     void likeArticle(unsigned int articleId);
     void dislikeArticle(unsigned int articleId);
+    void reportArticle(unsigned int articleId);
     void removeSavedArticle(unsigned int articleId);
     void showSavedArticlesMenu();
     void handleSearchArticles();
@@ -56,6 +57,15 @@ private:
     void configureNotifications();
     void showNotificationCategoryMenu();
     void configureKeywords();
+    
+    void showContentModerationMenu();
+    void viewReportedArticles();
+    void viewHiddenArticles();
+    void viewHiddenCategories();
+    void hideArticle(unsigned int articleId);
+    void unhideArticle(unsigned int articleId);
+    void hideCategory(unsigned int categoryId);
+    void unhideCategory(unsigned int categoryId);
     
     bool waitForRequestCompletion(bool& requestComplete);
     void displayMenuHeader(const std::string& title);

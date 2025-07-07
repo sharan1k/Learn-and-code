@@ -103,7 +103,11 @@ std::vector<std::shared_ptr<Category>> CategoryDao::getAllCategories() {
         auto conn = dbInstance->getConnection();
         
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT * FROM category ORDER BY categoryName"));
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+            "SELECT c.* FROM category c "
+            "WHERE NOT EXISTS (SELECT 1 FROM hiddenCategory hc WHERE hc.categoryId = c.categoryId) "
+            "ORDER BY c.categoryName"
+        ));
         
         while (res->next()) {
             auto category = std::make_shared<Category>();

@@ -69,6 +69,7 @@ add_library(service
     Service/Src/CategoryService.cpp
     Service/Src/ArticleService.cpp
     Service/Src/NotificationService.cpp
+    Service/Src/AdminService.cpp
 )
 
 # Controller library
@@ -77,6 +78,8 @@ add_library(controller
     Controller/Src/AdminController.cpp
     Controller/Src/ArticleController.cpp
     Controller/Src/NotificationController.cpp
+    Controller/Src/AdminControllerHiddenContent.cpp
+    Controller/Src/ArticleControllerReport.cpp
 )
 
 # Include directories - directly reference Common from parent directory
@@ -139,6 +142,9 @@ add_library(dbconnection
     Dao/Src/NotificationDao.cpp
     Dao/Src/NotificationSettingDao.cpp
     Dao/Src/KeywordDao.cpp
+    Dao/Src/ReportedArticleDao.cpp
+    Dao/Src/HiddenArticleDao.cpp
+    Dao/Src/HiddenCategoryDao.cpp
 )
 
 # Utils library
@@ -171,10 +177,10 @@ target_link_libraries(dbconnection
 )
 
 # Create server executable
-add_executable(newsagg_server server_main.cpp)
+add_executable(newsagg_server serverMain.cpp)
 
 # Create news fetcher executable
-add_executable(newsagg_fetcher news_fetcher_main.cpp)
+add_executable(newsagg_fetcher newsFetcherMain.cpp)
 
 # Link libraries
 target_include_directories(newssources PUBLIC

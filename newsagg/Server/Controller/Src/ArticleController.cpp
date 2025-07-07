@@ -1,4 +1,6 @@
 #include "../Inc/ArticleController.h"
+#include "../../Service/Inc/AdminService.h"
+#include "../../Utils/Inc/Logger.h"
 #include <regex>
 
 ArticleService& ArticleController::getArticleService() {
@@ -43,6 +45,7 @@ void ArticleController::registerRoutes(HttpServer& server) {
     server.post("/api/articles/:articleId/like", handleLikeArticle);
     server.post("/api/articles/:articleId/dislike", handleDislikeArticle);
     server.get("/api/categories", handleGetCategories);
+    server.post("/api/articles/:articleId/report", handleReportArticle);
 }
 
 bool ArticleController::isValidDateFormat(const std::string& date) {

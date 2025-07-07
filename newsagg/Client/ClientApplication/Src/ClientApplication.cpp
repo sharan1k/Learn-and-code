@@ -233,10 +233,11 @@ void ClientApplication::showAdminMenu() {
     std::cout << "2. View the external server's details" << std::endl;
     std::cout << "3. Update/Edit the external server's details" << std::endl;
     std::cout << "4. Add new News Category" << std::endl;
-    std::cout << "5. Logout" << std::endl;
+    std::cout << "5. Content Moderation" << std::endl;
+    std::cout << "6. Logout" << std::endl;
     std::cout << "=====================================" << std::endl;
     
-    std::string choice = getInput("Enter your choice (1-5): ");
+    std::string choice = getInput("Enter your choice (1-6): ");
     
     if (choice == "1") {
         listExternalServers();
@@ -247,6 +248,8 @@ void ClientApplication::showAdminMenu() {
     } else if (choice == "4") {
         addNewsCategory();
     } else if (choice == "5") {
+        showContentModerationMenu();
+    } else if (choice == "6") {
         handleLogout();
     } else {
         std::cout << "Invalid choice. Please try again." << std::endl;

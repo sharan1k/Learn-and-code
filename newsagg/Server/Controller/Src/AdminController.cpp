@@ -11,6 +11,10 @@ CategoryService& AdminController::getCategoryService() {
     return service;
 }
 
+AdminService& AdminController::getAdminService() {
+    return AdminService::getInstance();
+}
+
 void AdminController::sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status, const std::string& message) {
     nlohmann::json response = {{"status", "success"}};
     
@@ -41,6 +45,13 @@ void AdminController::registerRoutes(HttpServer& server) {
     server.get("/api/admin/external-servers/:id", handleGetExternalServerById);
     server.put("/api/admin/external-servers/:id", handleUpdateExternalServer);
     server.post("/api/admin/categories", handleAddCategory);
+    server.get("/api/admin/reported-articles", handleGetReportedArticles);
+    server.post("/api/admin/articles/:id/hide", handleHideArticle);
+    server.post("/api/admin/articles/:id/unhide", handleUnhideArticle);
+    server.post("/api/admin/categories/:id/hide", handleHideCategory);
+    server.post("/api/admin/categories/:id/unhide", handleUnhideCategory);
+    server.get("/api/admin/hidden-articles", handleGetHiddenArticles);
+    server.get("/api/admin/hidden-categories", handleGetHiddenCategories);
 }
 
 void AdminController::handleGetExternalServers(const httplib::Request& req, httplib::Response& res) {

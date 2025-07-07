@@ -22,6 +22,7 @@ private:
     static void handleSearchArticles(const httplib::Request& req, httplib::Response& res);
     static void handleLikeArticle(const httplib::Request& req, httplib::Response& res);
     static void handleDislikeArticle(const httplib::Request& req, httplib::Response& res);
+    static void handleReportArticle(const httplib::Request& req, httplib::Response& res);
     static void handleGetCategories(const httplib::Request& req, httplib::Response& res);
     
     static void sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status = 200, const std::string& message = "");

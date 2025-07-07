@@ -93,7 +93,11 @@ std::vector<std::shared_ptr<Article>> ArticleDao::findByCategory(unsigned int ca
         auto conn = dbInstance->getConnection();
         
         std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT * FROM article WHERE categoryId = ? ORDER BY publishedAt DESC"
+            "SELECT a.* FROM article a "
+            "WHERE a.categoryId = ? "
+            "AND NOT EXISTS (SELECT 1 FROM hiddenArticle ha WHERE ha.articleId = a.articleId) "
+            "AND NOT EXISTS (SELECT 1 FROM hiddenCategory hc WHERE hc.categoryId = a.categoryId) "
+            "ORDER BY a.publishedAt DESC"
         ));
         
         pstmt->setUInt(1, categoryId);
@@ -128,7 +132,10 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getLatestArticles(int limit) {
         auto conn = dbInstance->getConnection();
         
         std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT * FROM article ORDER BY publishedAt DESC LIMIT ?"
+            "SELECT a.* FROM article a "
+            "WHERE NOT EXISTS (SELECT 1 FROM hiddenArticle ha WHERE ha.articleId = a.articleId) "
+            "AND NOT EXISTS (SELECT 1 FROM hiddenCategory hc WHERE hc.categoryId = a.categoryId) "
+            "ORDER BY a.publishedAt DESC LIMIT ?"
         ));
         
         pstmt->setInt(1, limit);
@@ -153,93 +160,6 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getLatestArticles(int limit) {
     }
     
     return articles;
-}
-
-std::vector<std::shared_ptr<Article>> ArticleDao::findBySource(const std::string& source) {
-    std::vector<std::shared_ptr<Article>> articles;
-    
-    try {
-        auto dbInstance = DbConnection::getInstance();
-        auto conn = dbInstance->getConnection();
-        
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT * FROM article WHERE source = ? ORDER BY publishedAt DESC"
-        ));
-        
-        pstmt->setString(1, source);
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-        
-        while (res->next()) {
-            auto article = std::make_shared<Article>();
-            article->articleId = res->getUInt("articleId");
-            article->title = res->getString("title");
-            article->description = res->getString("description");
-            article->source = res->getString("source");
-            article->url = res->getString("url");
-            article->categoryId = res->getUInt("categoryId");
-            article->publishedAt = res->getString("publishedAt");
-            articles.push_back(article);
-        }
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in findBySource: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in findBySource: " << e.what() << std::endl;
-    }
-    
-    return articles;
-}
-
-bool ArticleDao::deleteArticle(unsigned int articleId) {
-    try {
-        auto dbInstance = DbConnection::getInstance();
-        auto conn = dbInstance->getConnection();
-        
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "DELETE FROM article WHERE articleId = ?"
-        ));
-        
-        pstmt->setUInt(1, articleId);
-        int rowsAffected = pstmt->executeUpdate();
-        
-        return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in deleteArticle: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-        return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in deleteArticle: " << e.what() << std::endl;
-        return false;
-    }
-}
-
-bool ArticleDao::updateArticle(const Article& article) {
-    try {
-        auto dbInstance = DbConnection::getInstance();
-        auto conn = dbInstance->getConnection();
-        
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "UPDATE article SET title = ?, description = ?, source = ?, url = ?, categoryId = ?, publishedAt = ? WHERE articleId = ?"
-        ));
-        
-        pstmt->setString(1, article.title);
-        pstmt->setString(2, article.description);
-        pstmt->setString(3, article.source);
-        pstmt->setString(4, article.url);
-        pstmt->setUInt(5, article.categoryId);
-        pstmt->setString(6, article.publishedAt);
-        pstmt->setUInt(7, article.articleId);
-        
-        int rowsAffected = pstmt->executeUpdate();
-        return rowsAffected > 0;
-    } catch (sql::SQLException &e) {
-        std::cerr << "SQLException in updateArticle: " << e.what() << std::endl;
-        std::cerr << "SQLState: " << e.getSQLState() << std::endl;
-        return false;
-    } catch (std::exception &e) {
-        std::cerr << "Exception in updateArticle: " << e.what() << std::endl;
-        return false;
-    }
 }
 
 bool ArticleDao::articleExists(const std::string& url) {
@@ -277,7 +197,10 @@ std::vector<std::shared_ptr<Article>> ArticleDao::getArticlesByDate(const std::s
         auto conn = dbInstance->getConnection();
         
         std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT * FROM article WHERE publishedAt LIKE ? ORDER BY publishedAt DESC LIMIT ?"
+            "SELECT a.* FROM article a "
+            "LEFT JOIN hiddenArticle h ON a.articleId = h.articleId "
+            "WHERE a.publishedAt LIKE ? AND h.articleId IS NULL "
+            "ORDER BY a.publishedAt DESC LIMIT ?"
         ));
         
         pstmt->setString(1, date + "%");

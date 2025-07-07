@@ -39,6 +39,7 @@ public:
     void getSavedArticles(unsigned int userId, SavedArticlesCallback callback);
     void likeArticle(unsigned int userId, unsigned int articleId, StatusCallback callback);
     void dislikeArticle(unsigned int userId, unsigned int articleId, StatusCallback callback);
+    void reportArticle(unsigned int userId, unsigned int articleId, StatusCallback callback);
     
 private:
     std::shared_ptr<HttpClient> httpClient;
