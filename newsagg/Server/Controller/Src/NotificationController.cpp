@@ -1,26 +1,43 @@
 #include "../Inc/NotificationController.h"
-#include <nlohmann/json.hpp>
-#include <iostream>
 
 NotificationService& NotificationController::getNotificationService() {
     static NotificationService service;
     return service;
 }
 
-void NotificationController::registerRoutes(HttpServer& server) {
-    std::cout << "Registering notification routes..." << std::endl;
+void NotificationController::sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status, const std::string& message) {
+    nlohmann::json response = {{"status", "success"}};
     
+    if (!data.is_null()) {
+        response["data"] = data;
+    }
+    
+    if (!message.empty()) {
+        response["message"] = message;
+    }
+    
+    res.status = status;
+    res.set_content(response.dump(), "application/json");
+}
+
+void NotificationController::sendErrorResponse(httplib::Response& res, const std::string& message, int status) {
+    nlohmann::json response = {
+        {"status", "error"},
+        {"message", message}
+    };
+    
+    res.status = status;
+    res.set_content(response.dump(), "application/json");
+}
+
+void NotificationController::registerRoutes(HttpServer& server) {
     server.get("/api/users/:userId/notifications", handleGetNotifications);
     server.put("/api/users/:userId/notifications/mark-seen", handleMarkNotificationsAsSeen);
-    
     server.get("/api/users/:userId/notification-settings", handleGetNotificationSettings);
     server.post("/api/users/:userId/notification-settings", handleUpdateNotificationSetting);
-    
     server.get("/api/users/:userId/keywords", handleGetKeywords);
     server.post("/api/users/:userId/keywords", handleAddKeyword);
     server.del("/api/users/:userId/keywords/:keyword", handleRemoveKeyword);
-    
-    std::cout << "Notification routes registered." << std::endl;
 }
 
 unsigned int NotificationController::getUserIdFromRequest(const httplib::Request& req) {
@@ -34,43 +51,32 @@ unsigned int NotificationController::getUserIdFromRequest(const httplib::Request
     return 0;
 }
 
+bool NotificationController::validateUserId(unsigned int userId, httplib::Response& res) {
+    if (userId == 0) {
+        sendErrorResponse(res, "Invalid or missing user ID", 400);
+        return false;
+    }
+    return true;
+}
+
 void NotificationController::handleGetNotifications(const httplib::Request& req, httplib::Response& res) {
-    std::cout << "Handling get notifications request" << std::endl;
-    
     try {
         unsigned int userId = getUserIdFromRequest(req);
         
-        if (userId == 0) {
-            res.status = 400;
-            nlohmann::json errorResponse = {
-                {"status", "error"},
-                {"message", "Invalid or missing user ID"}
-            };
-            res.set_content(errorResponse.dump(), "application/json");
+        if (!validateUserId(userId, res)) {
             return;
         }
         
         auto notifications = getNotificationService().getNotifications(userId);
         
-        nlohmann::json jsonResponse = {
-            {"status", "success"},
-            {"message", "Notifications retrieved successfully"},
-            {"data", nlohmann::json::array()}
-        };
-        
+        nlohmann::json responseData = nlohmann::json::array();
         for (const auto& notification : notifications) {
-            jsonResponse["data"].push_back(notification->toJson());
+            responseData.push_back(notification->toJson());
         }
         
-        res.set_content(jsonResponse.dump(), "application/json");
-        
+        sendSuccessResponse(res, responseData, 200, "Notifications retrieved successfully");
     } catch (const std::exception& e) {
-        res.status = 500;
-        nlohmann::json errorResponse = {
-            {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
-        };
-        res.set_content(errorResponse.dump(), "application/json");
+        sendErrorResponse(res, "Server error: " + std::string(e.what()));
     }
 }
 

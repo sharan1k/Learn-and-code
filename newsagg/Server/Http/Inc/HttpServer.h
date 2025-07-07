@@ -22,7 +22,6 @@ public:
     bool start();
     void stop();
     bool isServerRunning() const;
-    void printRegisteredPaths() const;
 
 private:
     int port;

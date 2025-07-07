@@ -3,6 +3,7 @@
 #include "../../Service/Inc/NotificationService.h"
 #include "../../Http/Inc/HttpServer.h"
 #include <string>
+#include <nlohmann/json.hpp>
 
 class NotificationController {
 public:
@@ -17,6 +18,10 @@ private:
     static void handleAddKeyword(const httplib::Request& req, httplib::Response& res);
     static void handleRemoveKeyword(const httplib::Request& req, httplib::Response& res);
     
+    static void sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status = 200, const std::string& message = "");
+    static void sendErrorResponse(httplib::Response& res, const std::string& message, int status = 500);
+    
     static NotificationService& getNotificationService();
     static unsigned int getUserIdFromRequest(const httplib::Request& req);
+    static bool validateUserId(unsigned int userId, httplib::Response& res);
 };

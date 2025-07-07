@@ -89,10 +89,3 @@ void HttpServer::stop() {
 bool HttpServer::isServerRunning() const {
     return isRunning;
 }
-
-void HttpServer::printRegisteredPaths() const {
-    std::cout << "API Routes:" << std::endl;
-    std::cout << "  POST /api/users/signup - User registration" << std::endl;
-    std::cout << "  POST /api/users/login - User login" << std::endl;
-    std::cout << "  GET /api/health - Server health check" << std::endl;
-}

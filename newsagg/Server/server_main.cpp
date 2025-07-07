@@ -94,8 +94,6 @@ int main(int argc, char** argv) {
     
     std::cout << "Starting server on port " << port << "..." << std::endl;
     
-    server.printRegisteredPaths();
-    
     if (!server.start()) {
         std::cerr << "Failed to start server on port " << port << std::endl;
         return 1;

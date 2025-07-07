@@ -1,6 +1,4 @@
 #include "../Inc/ArticleController.h"
-#include <nlohmann/json.hpp>
-#include <iostream>
 #include <regex>
 
 ArticleService& ArticleController::getArticleService() {
@@ -8,27 +6,43 @@ ArticleService& ArticleController::getArticleService() {
     return service;
 }
 
+void ArticleController::sendSuccessResponse(httplib::Response& res, const nlohmann::json& data, int status, const std::string& message) {
+    nlohmann::json response = {{"status", "success"}};
+    
+    if (!data.is_null()) {
+        response["data"] = data;
+    }
+    
+    if (!message.empty()) {
+        response["message"] = message;
+    }
+    
+    res.status = status;
+    res.set_content(response.dump(), "application/json");
+}
+
+void ArticleController::sendErrorResponse(httplib::Response& res, const std::string& message, int status) {
+    nlohmann::json response = {
+        {"status", "error"},
+        {"message", message}
+    };
+    
+    res.status = status;
+    res.set_content(response.dump(), "application/json");
+}
+
 void ArticleController::registerRoutes(HttpServer& server) {
-    std::cout << "Registering article routes..." << std::endl;
-    
     server.get("/api/search", handleSearchArticles);
-    
     server.get("/api/articles/headlines/today", handleGetTodayHeadlines);
     server.get("/api/articles/headlines/date-range", handleGetHeadlinesByDateRange);
     server.get("/api/articles/headlines/category/:categoryId", handleGetHeadlinesByCategory);
-    
     server.get("/api/articles/:articleId", handleGetArticleDetails);
-    
     server.post("/api/users/:userId/saved-articles", handleSaveArticle);
     server.get("/api/users/:userId/saved-articles", handleGetSavedArticles);
     server.del("/api/users/:userId/saved-articles/:articleId", handleRemoveSavedArticle);
-    
     server.post("/api/articles/:articleId/like", handleLikeArticle);
     server.post("/api/articles/:articleId/dislike", handleDislikeArticle);
-    
     server.get("/api/categories", handleGetCategories);
-    
-    std::cout << "Article routes registered." << std::endl;
 }
 
 bool ArticleController::isValidDateFormat(const std::string& date) {
@@ -47,51 +61,48 @@ unsigned int ArticleController::getUserIdFromRequest(const httplib::Request& req
     return 0;
 }
 
-void ArticleController::handleGetTodayHeadlines(const httplib::Request& req, httplib::Response& res) {
-    std::cout << "Handling get today headlines request" << std::endl;
-    
-    try {
-        int limit = 10;
-        
-        if (req.has_param("limit")) {
-            limit = std::stoi(req.get_param_value("limit"));
+unsigned int ArticleController::getArticleIdFromRequest(const httplib::Request& req) {
+    if (req.path_params.find("articleId") != req.path_params.end()) {
+        try {
+            return std::stoul(req.path_params.at("articleId"));
+        } catch (...) {
+            return 0;
         }
-        
+    }
+    return 0;
+}
+
+int ArticleController::getLimitFromRequest(const httplib::Request& req, int defaultLimit) {
+    if (req.has_param("limit")) {
+        try {
+            return std::stoi(req.get_param_value("limit"));
+        } catch (...) {
+            return defaultLimit;
+        }
+    }
+    return defaultLimit;
+}
+
+void ArticleController::handleGetTodayHeadlines(const httplib::Request& req, httplib::Response& res) {
+    try {
+        int limit = getLimitFromRequest(req);
         auto articles = getArticleService().getTodayHeadlines(limit);
         
-        nlohmann::json jsonResponse = {
-            {"status", "success"},
-            {"message", "Headlines retrieved successfully"},
-            {"data", nlohmann::json::array()}
-        };
-        
+        nlohmann::json responseData = nlohmann::json::array();
         for (const auto& article : articles) {
-            jsonResponse["data"].push_back(article->toJson());
+            responseData.push_back(article->toJson());
         }
         
-        res.set_content(jsonResponse.dump(), "application/json");
-        
+        sendSuccessResponse(res, responseData, 200, "Headlines retrieved successfully");
     } catch (const std::exception& e) {
-        res.status = 500;
-        nlohmann::json errorResponse = {
-            {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
-        };
-        res.set_content(errorResponse.dump(), "application/json");
+        sendErrorResponse(res, "Server error: " + std::string(e.what()));
     }
 }
 
 void ArticleController::handleGetHeadlinesByDateRange(const httplib::Request& req, httplib::Response& res) {
-    std::cout << "Handling get headlines by date range request" << std::endl;
-    
     try {
         if (!req.has_param("startDate") || !req.has_param("endDate")) {
-            res.status = 400;
-            nlohmann::json errorResponse = {
-                {"status", "error"},
-                {"message", "Start date and end date are required"}
-            };
-            res.set_content(errorResponse.dump(), "application/json");
+            sendErrorResponse(res, "Start date and end date are required", 400);
             return;
         }
         
@@ -99,59 +110,28 @@ void ArticleController::handleGetHeadlinesByDateRange(const httplib::Request& re
         std::string endDate = req.get_param_value("endDate");
         
         if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate)) {
-            res.status = 400;
-            nlohmann::json errorResponse = {
-                {"status", "error"},
-                {"message", "Invalid date format. Use YYYY-MM-DD format."}
-            };
-            res.set_content(errorResponse.dump(), "application/json");
+            sendErrorResponse(res, "Invalid date format. Use YYYY-MM-DD format.", 400);
             return;
         }
         
-        int limit = 10; 
-        if (req.has_param("limit")) {
-            limit = std::stoi(req.get_param_value("limit"));
-        }
+        int limit = getLimitFromRequest(req);
+        std::vector<std::shared_ptr<Article>> articles;
         
         if (req.has_param("categoryId")) {
             unsigned int categoryId = std::stoul(req.get_param_value("categoryId"));
-            auto articles = getArticleService().getHeadlinesByDateRangeAndCategory(startDate, endDate, categoryId, limit);
-                
-        nlohmann::json jsonResponse = {
-            {"status", "success"},
-            {"message", "Headlines retrieved successfully"},
-            {"data", nlohmann::json::array()}
-        };
-                
+            articles = getArticleService().getHeadlinesByDateRangeAndCategory(startDate, endDate, categoryId, limit);
+        } else {
+            articles = getArticleService().getHeadlinesByDateRange(startDate, endDate, limit);
+        }
+        
+        nlohmann::json responseData = nlohmann::json::array();
         for (const auto& article : articles) {
-            jsonResponse["data"].push_back(article->toJson());
-        }
-                
-        res.set_content(jsonResponse.dump(), "application/json");
-        return;
+            responseData.push_back(article->toJson());
         }
         
-        auto articles = getArticleService().getHeadlinesByDateRange(startDate, endDate, limit);
-        
-        nlohmann::json jsonResponse = {
-            {"status", "success"},
-            {"message", "Headlines retrieved successfully"},
-            {"data", nlohmann::json::array()}
-        };
-        
-        for (const auto& article : articles) {
-            jsonResponse["data"].push_back(article->toJson());
-        }
-        
-        res.set_content(jsonResponse.dump(), "application/json");
-        
+        sendSuccessResponse(res, responseData, 200, "Headlines retrieved successfully");
     } catch (const std::exception& e) {
-        res.status = 500;
-        nlohmann::json errorResponse = {
-            {"status", "error"},
-            {"message", "Server error: " + std::string(e.what())}
-        };
-        res.set_content(errorResponse.dump(), "application/json");
+        sendErrorResponse(res, "Server error: " + std::string(e.what()));
     }
 }
 
