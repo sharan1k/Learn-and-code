@@ -1,7 +1,7 @@
 #include "../Inc/NewsSourceManager.h"
 #include "../Inc/TheNewsApi.h"
 #include "../Inc/NewsApi.h"
-#include <iostream>
+#include "../../Utils/Inc/Logger.h"
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -20,24 +20,24 @@ NewsSourceManager& NewsSourceManager::getInstance() {
 
 bool NewsSourceManager::initializeNewsSource(std::shared_ptr<INewsSource> newsSource, const std::string& apiKey) {
     if (!newsSource) {
-        std::cerr << "Error: Cannot initialize null news source" << std::endl;
+        Logger::error("Cannot initialize null news source");
         return false;
     }
     
     const std::string& sourceName = newsSource->getName();
     
     if (!newsSource->initialize(apiKey)) {
-        std::cerr << "Failed to initialize news source '" << sourceName << "'." << std::endl;
+        Logger::error("Failed to initialize news source '" + sourceName + "'");
         return false;
     }
     
-    std::cout << "News source '" << sourceName << "' initialized." << std::endl;
+    Logger::info("News source '" + sourceName + "' initialized");
     return true;
 }
 
 void NewsSourceManager::startFetchingNews(int intervalMinutes) {
     if (isFetching) {
-        std::cout << "News auto-fetch is already running. Stopping existing fetch before starting new one." << std::endl;
+        Logger::info("News auto-fetch is already running. Stopping existing fetch before starting new one");
         stopFetchingNews();
     }
     
@@ -49,7 +49,7 @@ void NewsSourceManager::startFetchingNews(int intervalMinutes) {
         timeMessage = std::to_string(intervalMinutes) + "-minute" + (intervalMinutes > 1 ? "s" : "");
     }
     
-    std::cout << "Starting sequential news fetching with " << timeMessage << " interval..." << std::endl;
+    Logger::info("Starting sequential news fetching with " + timeMessage + " interval");
     
     isFetching = true;
     fetchThread = std::thread([this, intervalMinutes]() {
@@ -65,7 +65,7 @@ void NewsSourceManager::startFetchingNews(int intervalMinutes) {
     });
     fetchThread.detach();
     
-    std::cout << "News auto-fetch started with " << timeMessage << " interval for all active sources." << std::endl;
+    Logger::info("News auto-fetch started with " + timeMessage + " interval for all active sources");
 }
 
 void NewsSourceManager::stopFetchingNews() {
@@ -76,7 +76,7 @@ void NewsSourceManager::stopFetchingNews() {
             fetchThread.join();
         }
         
-        std::cout << "Stopped news auto-fetch." << std::endl;
+        Logger::info("Stopped news auto-fetch");
     }
 }
 
@@ -103,13 +103,14 @@ std::vector<std::shared_ptr<INewsSource>> NewsSourceManager::getAllNewsSources()
 }
 
 void NewsSourceManager::loadNewsSourcesFromDatabase() {
+    Logger::info("Loading news sources from database");
     auto servers = serverDao.getAllExternalServers();
     
     for (const auto& server : servers) {
         {
             std::lock_guard<std::mutex> lock(sourcesMutex);
             if (newsSources.find(server->apiName) != newsSources.end()) {
-                std::cout << "News source '" << server->apiName << "' is already loaded." << std::endl;
+                Logger::info("News source '" + server->apiName + "' is already loaded");
                 continue;
             }
         }
@@ -121,16 +122,16 @@ void NewsSourceManager::loadNewsSourcesFromDatabase() {
                 
                 std::lock_guard<std::mutex> lock(sourcesMutex);
                 newsSources[server->apiName] = newsSource;
-                std::cout << "Loaded news source '" << server->apiName << "' from database." << std::endl;
+                Logger::info("Loaded news source '" + server->apiName + "' from database");
             }
         } else {
-            std::cerr << "Unknown news source type: '" << server->apiName << "'." << std::endl;
+            Logger::error("Unknown news source type: '" + server->apiName + "'");
         }
     }
 }
 
 bool NewsSourceManager::fetchNewsNow() {
-    std::cout << "Manually fetching news from all sources sequentially..." << std::endl;
+    Logger::info("Manually fetching news from all sources sequentially");
     return fetchNewsSequentially();
 }
 
@@ -146,30 +147,29 @@ std::shared_ptr<INewsSource> NewsSourceManager::createNewsSource(const std::stri
 
 bool NewsSourceManager::fetchNewsSequentially() {
     bool overallSuccess = true;
-    std::vector<std::string> sourceOrder;
     
     {
         std::shared_ptr<INewsSource> newsApi = getNewsSource("NewsApi");
         if (newsApi && newsApi->isActive()) {
             try {
-                std::cout << "Sequentially fetching news from source 'NewsApi'..." << std::endl;
+                Logger::info("Sequentially fetching news from source 'NewsApi'");
                 
                 auto articles = newsApi->fetchNews();
-                std::cout << "Fetched " << articles.size() << " articles from 'NewsApi'." << std::endl;
+                Logger::info("Fetched " + std::to_string(articles.size()) + " articles from 'NewsApi'");
                 
                 if (auto api = std::dynamic_pointer_cast<NewsApi>(newsApi)) {
                     if (api->processAndStoreArticles(articles)) {
-                        std::cout << "Successfully processed and stored articles from 'NewsApi'." << std::endl;
+                        Logger::info("Successfully processed and stored articles from 'NewsApi'");
                     } else {
-                        std::cerr << "Failed to process some articles from 'NewsApi'." << std::endl;
+                        Logger::error("Failed to process some articles from 'NewsApi'");
                         overallSuccess = false;
                     }
                 }
             } catch (const std::exception& e) {
-                std::cerr << "Error fetching news from source 'NewsApi': " << e.what() << std::endl;
+                Logger::error("Error fetching news from source 'NewsApi': " + std::string(e.what()));
                 overallSuccess = false;
             } catch (...) {
-                std::cerr << "Unknown error fetching news from source 'NewsApi'" << std::endl;
+                Logger::error("Unknown error fetching news from source 'NewsApi'");
                 overallSuccess = false;
             }
         }
@@ -179,28 +179,28 @@ bool NewsSourceManager::fetchNewsSequentially() {
         std::shared_ptr<INewsSource> theNewsApi = getNewsSource("TheNewsApi");
         if (theNewsApi && theNewsApi->isActive()) {
             try {
-                std::cout << "Sequentially fetching news from source 'TheNewsApi'..." << std::endl;
+                Logger::info("Sequentially fetching news from source 'TheNewsApi'");
                 auto articles = theNewsApi->fetchNews();
-                std::cout << "Fetched " << articles.size() << " articles from 'TheNewsApi'." << std::endl;
+                Logger::info("Fetched " + std::to_string(articles.size()) + " articles from 'TheNewsApi'");
                 
                 if (auto api = std::dynamic_pointer_cast<TheNewsApi>(theNewsApi)) {
                     if (api->processAndStoreArticles(articles)) {
-                        std::cout << "Successfully processed and stored articles from 'TheNewsApi'." << std::endl;
+                        Logger::info("Successfully processed and stored articles from 'TheNewsApi'");
                     } else {
-                        std::cerr << "Failed to process some articles from 'TheNewsApi'." << std::endl;
+                        Logger::error("Failed to process some articles from 'TheNewsApi'");
                         overallSuccess = false;
                     }
                 }
             } catch (const std::exception& e) {
-                std::cerr << "Error fetching news from source 'TheNewsApi': " << e.what() << std::endl;
+                Logger::error("Error fetching news from source 'TheNewsApi': " + std::string(e.what()));
                 overallSuccess = false;
             } catch (...) {
-                std::cerr << "Unknown error fetching news from source 'TheNewsApi'" << std::endl;
+                Logger::error("Unknown error fetching news from source 'TheNewsApi'");
                 overallSuccess = false;
             }
         }
     }
     
-    std::cout << "Sequential fetching complete." << std::endl;
+    Logger::info("Sequential fetching complete");
     return overallSuccess;
 }

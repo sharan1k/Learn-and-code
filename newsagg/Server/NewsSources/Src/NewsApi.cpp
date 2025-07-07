@@ -3,9 +3,9 @@
 #include "../../Dao/Inc/CategoryDao.h"
 #include "../../Dao/Inc/ExternalServerDao.h"
 #include "../../Service/Inc/NotificationService.h"
+#include "../../Utils/Inc/Logger.h"
 #include "../../../Common/Inc/httplib.h"
 #include <nlohmann/json.hpp>
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <chrono>
@@ -17,7 +17,6 @@
 NewsApi::NewsApi() 
     : apiUrl("https://newsapi.org/v2/top-headlines"), 
       active(false) {
-    
     articleDao = std::make_unique<ArticleDao>();
     categoryDao = std::make_unique<CategoryDao>();
 }
@@ -29,7 +28,7 @@ std::vector<Article> NewsApi::fetchNews() {
     std::vector<Article> articles;
     
     if (!active || apiKey.empty()) {
-        std::cerr << "NewsApi is not active or API key is missing" << std::endl;
+        Logger::warning("NewsApi is not active or API key is missing");
         return articles;
     }
     
@@ -45,6 +44,7 @@ std::vector<Article> NewsApi::fetchNews() {
     
     try {
         updateLastAccessed();
+        Logger::debug("Setting up HTTP client for NewsApi");
         httplib::SSLClient cli("newsapi.org");
         cli.set_connection_timeout(5);
         cli.enable_server_certificate_verification(false);
@@ -52,8 +52,8 @@ std::vector<Article> NewsApi::fetchNews() {
         for (const auto& category : categories) {
             std::string apiCategory = category.first;
             std::string displayCategory = category.second;
+            Logger::info("Fetching news for category: " + displayCategory);
             
-            std::cout << "Fetching news for category: " << displayCategory << std::endl;
             std::string path = "/v2/top-headlines?country=us&category=" + apiCategory + "&apiKey=" + apiKey;
             auto res = cli.Get(path.c_str());
             
@@ -97,31 +97,32 @@ std::vector<Article> NewsApi::fetchNews() {
                     }
                 }
             } else {
-                std::cerr << "Error fetching news for category " << displayCategory << " from NewsAPI.";
+                Logger::error("Error fetching news for category " + displayCategory + " from NewsAPI");
                 if (res) {
-                    std::cerr << " Status: " << res->status << std::endl;
+                    Logger::error("Status: " + std::to_string(res->status));
                     if (res->body.find("message") != std::string::npos) {
                         try {
                             nlohmann::json errorJson = nlohmann::json::parse(res->body);
                             if (errorJson.contains("message")) {
-                                std::cerr << "Error message: " << errorJson["message"].get<std::string>() << std::endl;
+                                Logger::error("Error message: " + errorJson["message"].get<std::string>());
                             }
                         } catch (const std::exception& e) {
-                            std::cerr << "Failed to parse error message: " << e.what() << std::endl;
+                            Logger::error("Failed to parse error message: " + std::string(e.what()));
                         }
                     }
                 } else {
                     auto err = res.error();
-                    std::cerr << " Error: " << httplib::to_string(err) << std::endl;
+                    Logger::error("Error: " + httplib::to_string(err));
                 }
             }
             
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     } catch (const std::exception& e) {
-        std::cerr << "Exception in fetchNews for NewsAPI: " << e.what() << std::endl;
+        Logger::error("Exception in fetchNews for NewsAPI: " + std::string(e.what()));
     }
     
+    Logger::info("NewsAPI fetch returning " + std::to_string(articles.size()) + " articles");
     return articles;
 }
 
@@ -141,6 +142,7 @@ bool NewsApi::isActive() const {
 
 void NewsApi::setActive(bool isActive) {
     active = isActive;
+    Logger::info("Setting NewsApi status to " + std::string(active ? "active" : "inactive"));
     
     try {
         ExternalServerDao serverDao;
@@ -149,23 +151,28 @@ void NewsApi::setActive(bool isActive) {
             serverDao.setApiStatus(server->apiId, active ? ApiStatus::ACTIVE : ApiStatus::NOT_ACTIVE);
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error updating API status for NewsAPI: " << e.what() << std::endl;
+        Logger::error("Error updating API status for NewsAPI: " + std::string(e.what()));
     }
 }
 
 bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
     bool allSuccessful = true;
     NotificationService notificationService;
+    int newArticles = 0;
+    int existingArticles = 0;
     
+    Logger::info("NewsApi processing " + std::to_string(articles.size()) + " articles");
     std::map<unsigned int, std::vector<unsigned int>> userNotifications;
     
     for (const auto& article : articles) {
         if (articleDao->articleExists(article.url)) {
+            existingArticles++;
             continue;
         }
         
         unsigned int articleId = 0;
         if (articleDao->createArticle(article, &articleId)) {
+            newArticles++;
             if (articleId > 0) {
                 std::vector<unsigned int> interestedUsers = notificationService.getUsersInterestedInArticle(articleId);
                 
@@ -175,7 +182,7 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
                 }
             }
         } else {
-            std::cerr << "Failed to store article from NewsAPI: " << article.title << std::endl;
+            Logger::error("Failed to store article from NewsAPI: " + article.title);
             allSuccessful = false;
         }
     }
@@ -196,6 +203,9 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
         }
     }
     
+    Logger::info("NewsApi processing complete: " + std::to_string(newArticles) + " new articles stored, " 
+              + std::to_string(existingArticles) + " already existed");
+    
     return allSuccessful;
 }
 
@@ -211,9 +221,10 @@ void NewsApi::updateLastAccessed() {
         auto server = serverDao.findByName(getName());
         if (server) {
             serverDao.updateLastAccessed(server->apiId, timestamp);
+            Logger::debug("Updated last accessed time for NewsApi to " + timestamp);
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error updating last accessed time for NewsAPI: " << e.what() << std::endl;
+        Logger::error("Error updating last accessed time for NewsApi: " + std::string(e.what()));
     }
 }
 
