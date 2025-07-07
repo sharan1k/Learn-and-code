@@ -45,31 +45,43 @@ void ClientApplication::viewNotifications() {
         bool success, const std::string& message, const std::vector<Notification*>& fetchedNotifications) {
         
         if (success) {
+            // Store all notifications but only process unseen ones
             notifications = fetchedNotifications;
             
-            if (notifications.empty()) {
-                std::cout << "You have no notifications." << std::endl;
+            // Count unseen notifications
+            int unseenCount = 0;
+            for (const auto& notification : notifications) {
+                if (notification->seenStatus == "unseen") {
+                    unseenCount++;
+                }
+            }
+            
+            if (unseenCount == 0) {
+                std::cout << "You have no new notifications." << std::endl;
             } else {
-                std::cout << "You have " << notifications.size() << " notification(s):" << std::endl;
+                std::cout << "You have " << unseenCount << " new notification(s):" << std::endl;
                 
                 int count = 1;
                 for (const auto& notification : notifications) {
-                    std::cout << count << ". Article ID: " << notification->articleId << " - Status: " << notification->seenStatus << std::endl;
-                    count++;
-                    
-                    articleHandler->getArticleDetails(notification->articleId, [](
-                        bool success, const std::string& message, const Article* article) { 
+                    // Only display unseen notifications
+                    if (notification->seenStatus == "unseen") {
+                        std::cout << count << ". Article ID: " << notification->articleId << std::endl;
+                        count++;
                         
-                        if (success && article) {
-                            std::cout << "   Title: " << article->title << std::endl;
-                            std::cout << "   Published: " << article->publishedAt << std::endl; 
-                            std::cout << "   Category ID: " << article->categoryId << std::endl;
-                            std::cout << "   -------------------" << std::endl;
-                        } else {
-                            std::cout << "   [Could not fetch article details: " << message << "]" << std::endl;
-                            std::cout << "   -------------------" << std::endl;
-                        }
-                    });
+                        articleHandler->getArticleDetails(notification->articleId, [this](
+                            bool success, const std::string& message, const Article* article) { 
+                            
+                            if (success && article) {
+                                std::cout << "   Title: " << article->title << std::endl;
+                                std::cout << "   Published: " << article->publishedAt << std::endl; 
+                                std::cout << "   Category: " << getCategoryNameById(article->categoryId) << std::endl;
+                                std::cout << "   -------------------" << std::endl;
+                            } else {
+                                std::cout << "   [Could not fetch article details: " << message << "]" << std::endl;
+                                std::cout << "   -------------------" << std::endl;
+                            }
+                        });
+                    }
                 }
                 
                 notificationHandler->markNotificationsAsSeen(currentUser->userId, [](bool success, const std::string& message) {
@@ -97,6 +109,7 @@ void ClientApplication::viewNotifications() {
         std::cout << "Request timed out. Please try again later." << std::endl;
     }
     
+    // Clean up notification objects
     for (auto notification : notifications) {
         delete notification;
     }

@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <chrono>
-#include <thread> // For std::this_thread
+#include <thread> 
 #include <ctime>
 #include <regex>
 #include <map>
@@ -33,7 +33,6 @@ std::vector<Article> NewsApi::fetchNews() {
         return articles;
     }
     
-    // Define all available categories
     std::vector<std::pair<std::string, std::string>> categories = {
         {"general", "General"},
         {"business", "Business"},
@@ -50,7 +49,6 @@ std::vector<Article> NewsApi::fetchNews() {
         cli.set_connection_timeout(5);
         cli.enable_server_certificate_verification(false);
         
-        // Iterate through each category
         for (const auto& category : categories) {
             std::string apiCategory = category.first;
             std::string displayCategory = category.second;
@@ -82,7 +80,6 @@ std::vector<Article> NewsApi::fetchNews() {
                         
                         if (item.contains("url")) article.url = item["url"].get<std::string>();
             
-                        // Use the current category
                         article.categoryId = categoryDao->findOrCreateCategory(apiCategory);
                         
                         if (item.contains("publishedAt")) {
@@ -160,7 +157,6 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
     bool allSuccessful = true;
     NotificationService notificationService;
     
-    // Map to store user IDs to their notification article IDs
     std::map<unsigned int, std::vector<unsigned int>> userNotifications;
     
     for (const auto& article : articles) {
@@ -171,13 +167,10 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
         unsigned int articleId = 0;
         if (articleDao->createArticle(article, &articleId)) {
             if (articleId > 0) {
-                // Instead of sending immediate notifications, collect the users who should be notified
                 std::vector<unsigned int> interestedUsers = notificationService.getUsersInterestedInArticle(articleId);
                 
-                // Add the article to each user's notification list
                 for (unsigned int userId : interestedUsers) {
                     userNotifications[userId].push_back(articleId);
-                    // Create the notification record in the database
                     notificationService.createNotification(userId, articleId);
                 }
             }
@@ -187,12 +180,10 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
         }
     }
     
-    // Send a single email to each user with all their notifications
     for (const auto& [userId, articleIds] : userNotifications) {
         if (!articleIds.empty()) {
             std::vector<std::shared_ptr<Notification>> notifications;
             
-            // Create notification objects
             for (unsigned int articleId : articleIds) {
                 auto notification = std::make_shared<Notification>();
                 notification->userId = userId;
@@ -201,7 +192,6 @@ bool NewsApi::processAndStoreArticles(const std::vector<Article>& articles) {
                 notifications.push_back(notification);
             }
             
-            // Send a single email with all notifications for this user
             notificationService.sendEmailNotification(userId, notifications);
         }
     }

@@ -613,7 +613,7 @@ void ClientApplication::loadCategories() {
 }
 
 std::string ClientApplication::getCategoryNameById(unsigned int categoryId) {
-    if (categoryMap.empty()) {
+    if (categoryMap.find(categoryId) == categoryMap.end()) {
         loadCategories();
     }
     

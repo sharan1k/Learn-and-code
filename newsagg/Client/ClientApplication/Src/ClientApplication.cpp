@@ -13,7 +13,12 @@ ClientApplication::ClientApplication(const std::string& host, int port)
     adminHandler = std::make_unique<AdminHandler>(httpClient);
     articleHandler = std::make_unique<ArticleHandler>(httpClient);
     notificationHandler = std::make_unique<NotificationHandler>(httpClient);
-    loadCategories();
+    // Initialize default categories (will be loaded from server when actually needed)
+    categoryMap[1] = "All";
+    categoryMap[2] = "Business";
+    categoryMap[3] = "Entertainment";
+    categoryMap[4] = "Sports";
+    categoryMap[5] = "Technology";
 }
 
 void ClientApplication::start() {
